@@ -17,9 +17,10 @@ body {
   background-color: #000;
 }
 /* canvas is treated as inline by default, change it to block for easier building initially */
-canvas {
+#c {
   display: block;
 }
+
 
 
 
