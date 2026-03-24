@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
 const fleet = []; // Keeps track of ships
@@ -15,6 +16,11 @@ const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
 renderer.setSize(window.innerWidth, window.innerHeight); // use the width and height of the browser to render the app
 
 camera.position.z = 40; // Move the camera out
+
+// instantiate the controls and pass in the camera and the canvas element so it knows what to listen to for mouse events
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05; // Gives it that cinematic, smooth glide
 
 // Add the SpaceStation to the scene to be rendered
 const spaceStation = new THREE.Group();
@@ -140,6 +146,7 @@ const animate = time => {
     spaceStation.rotation.x = time / 2000;
     spaceStation.rotation.y = time / 1000;
 
+    controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
