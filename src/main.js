@@ -101,6 +101,107 @@ coreGroup.add(bottomBulkhead);
 // Add the completed core to the main station hierarchy
 spaceStation.add(coreGroup);
 
+/* ============================================================================
+   COMPONENT 3: THE DOCKING HUB
+   ============================================================================
+*/
+const dockingGroup = new THREE.Group();
+
+//1. The Main Ring (Ties the modules to the core)
+const ringGeometry = new THREE.TorusGeometry(22, 1.5, 16, 64);
+const ringSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
+const ringWireMaterial = new THREE.MeshBasicMaterial({ color: 0xff4d00, wireframe: true });
+const ringSolid = new THREE.Mesh(ringGeometry, ringSolidMaterial);
+const ringWire = new THREE.Mesh(ringGeometry, ringWireMaterial);
+ringWire.scale.set(1.01, 1.01, 1.01);
+
+// The Torus renders vertically by default. We rotate it 90 degrees (PI/2) to lay flat on the XZ plane.
+ringSolid.rotation.x = Math.PI / 2;
+ringWire.rotation.x = Math.PI / 2;
+dockingGroup.add(ringSolid);
+dockingGroup.add(ringWire);
+
+// 2. The 6 Docking Modules
+ for (let i = 0; i < 6; i++) {
+    const moduleGroup = new THREE.Group();
+
+    // Module base and wireframe overlay (Warninig Orange)
+    const modGeo = new THREE.CylinderGeometry(2.5, 2.5, 8, 16);
+    const modSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const modWireMaterial = new THREE.MeshBasicMaterial({ color: 0xff4d00, wireframe: true });
+    const modSolid = new THREE.Mesh(modGeo, modSolidMaterial);
+    const modWire = new THREE.Mesh(modGeo, modWireMaterial);
+    modWire.scale.set(1.02, 1.02, 1.02); // Slightly larger to avoid Z-fighting
+
+    moduleGroup.add(modSolid);
+    moduleGroup.add(modWire);
+
+    // Trigonometry to distribute 6 modules evenly around the 360-degree (2 * PI) ring
+    const angle = (i / 6) * Math.PI * 2;
+    const distance = 22; // Matches the Torus radius so they sit exactly on the ring
+
+    moduleGroup.position.x = Math.cos(angle) * distance;
+    moduleGroup.position.z = Math.sin(angle) * distance;
+
+    // Rotate the cylinders so they point outward like spokes on a wheel
+    moduleGroup.rotation.x = Math.PI / 2;
+    moduleGroup.rotation.z = angle;
+
+    dockingGroup.add(moduleGroup);
+ }
+// Attach the entire docking assembly to the main station
+spaceStation.add(dockingGroup);
+
+/* ============================================================================
+   COMPONENT 4: THE SOLAR ARRAYS
+   ============================================================================
+*/
+const solarGroup = new THREE.Group();
+
+for (let i = 0; i < 4; i++) {
+    const panelArm = new THREE.Group();
+
+    // 1. Central Mast
+    const mastGeo = new THREE.CylinderGeometry(0.5, 0.5, 30, 8);
+    const mastSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+    const mastSolid = new THREE.Mesh(mastGeo, mastSolidMaterial);
+    panelArm.add(mastSolid);
+
+    // 2. The Photovoltaic Panels (Deep blue with Electric Blue wireframe)
+    const panelGeo = new THREE.BoxGeometry(8, 0.2, 26);
+    const panelSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x001133 });
+    const panelWireMaterial = new THREE.MeshBasicMaterial({ color: 0x0066ff, wireframe: true });
+    const panelSolid = new THREE.Mesh(panelGeo, panelSolidMaterial);
+    const panelWire = new THREE.Mesh(panelGeo, panelWireMaterial);
+    panelWire.scale.set(1.01, 1.01, 1.01);
+
+    // Group the solid panel and wireframe together
+    const panelComposite = new THREE.Group();
+    panelComposite.add(panelSolid);
+    panelComposite.add(panelWire);
+
+    // Add the panel composite to the arm
+    panelArm.add(panelComposite);
+
+    // Distribute the 4 arrays evenly
+    const angle = (i / 4) * Math.PI * 2;
+    const distance = 40; // Push these further out past the docking ring
+
+    panelArm.position.x = Math.cos(angle) * distance;
+    panelArm.position.z = Math.sin(angle) * distance;
+
+    // Rotate the arm to point outward
+    panelArm.rotation.x = Math.PI / 2;
+    panelArm.rotation.z = angle;
+
+    // Tilt the panels themselves 30 dgrees (PI/6) on their Y axis for a dynamic, deployed look
+    panelComposite.rotation.y = Math.PI / 6;
+
+    solarGroup.add(panelArm);
+}
+// Attach the arrays to the man station
+spaceStation.add(solarGroup);
+
 window.addEventListener('resize', () => {
     // 1. Update camera aspect ratio
     camera.aspect = window.innerWidth / window.innerHeight;
