@@ -172,114 +172,148 @@ for (let i = -3; i <= 3; i++) {
 spaceStation.add(spineGroup);
 
 /* ============================================================================
-   COMPONENT 4: THE DOCKING HUB
-   ============================================================================
-*/
-const dockingGroup = new THREE.Group();
+COMPONENT 4: HABITAT & DOCKING MODULES (minimum 6 required)
+============================================================================
+Six pressurised habitat modules extend horizontally from the spine,
+three on each side, staggered at three vertical positions.
+This matches how modules on the ISS attach to the central truss —
+branching outward rather than arranged in a wheel.
 
-//1. The Main Ring (Ties the modules to the core)
-const ringGeometry = new THREE.TorusGeometry(22, 1.5, 16, 64);
-const ringSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
-const ringWireMaterial = new THREE.MeshBasicMaterial({
-  color: 0xff4d00,
-  wireframe: true,
+Each module consists of:
+1. A connecting tunnel (thin cylinder) from the spine to the module
+2. A main habitat cylinder (the pressurised volume)
+3. Two end caps (flat discs) — the docking interfaces
+
+POSITION MATHS (port side, +X):
+  Tunnel:     length 10, centred at x=5,  spans x=0  to x=10
+  Habitat:    length 18, centred at x=19, spans x=10 to x=28
+  Inner cap:  at x=10 — junction between tunnel and habitat
+  Outer cap:  at x=28 — far docking end of habitat
+  (Starboard side mirrors these with negative X values)
+============================================================================ */
+const habitatGroup = new THREE.Group();
+
+// The three vertical heights where modules attach to the spine.
+// Port = right side (+X), Starboard = left side (-X)
+const moduleHeights = [30, 0, -30];
+
+// Shared geometries — defined once, reused for both sides
+// This avoids redundant geometry declarations
+const tunnelGeo = new THREE.CylinderGeometry(1.2, 1.2, 10, 12);
+const habitatGeo = new THREE.CylinderGeometry(3.5, 3.5, 18, 16);
+const capGeo = new THREE.CylinderGeometry(3.5, 3.5, 0.8, 16);
+
+// Shared materials — defined once, reused for both sides
+const tunnelSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+const tunnelWireMat = new THREE.MeshBasicMaterial({ color: 0xff4d00, wireframe: true });
+const habitatSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+const habitatWireMat = new THREE.MeshBasicMaterial({ color: 0xff4d00, wireframe: true });
+const capSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+const capWireMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+
+moduleHeights.forEach((yPos) => {
+
+    // --- PORT SIDE MODULE (right, +X direction) ---
+    const portModule = new THREE.Group();
+
+    // 1. Connecting tunnel — starts inside the spine (x=0) and extends to x=10
+    // Rotated 90 degrees on Z so it points along the X axis horizontally
+    const tunnelSolid = new THREE.Mesh(tunnelGeo, tunnelSolidMat);
+    const tunnelWire = new THREE.Mesh(tunnelGeo, tunnelWireMat);
+    tunnelWire.scale.set(1.02, 1.02, 1.02);
+    const tunnel = new THREE.Group();
+    tunnel.add(tunnelSolid);
+    tunnel.add(tunnelWire);
+    tunnel.rotation.z = Math.PI / 2; // Point along X axis
+    tunnel.position.x = 5;           // Centred at x=5, spans x=0 to x=10
+    portModule.add(tunnel);
+
+    // 2. Main habitat cylinder — begins exactly where the tunnel ends (x=10)
+    const habitatSolid = new THREE.Mesh(habitatGeo, habitatSolidMat);
+    const habitatWire = new THREE.Mesh(habitatGeo, habitatWireMat);
+    habitatWire.scale.set(1.02, 1.02, 1.02);
+    const habitat = new THREE.Group();
+    habitat.add(habitatSolid);
+    habitat.add(habitatWire);
+    habitat.rotation.z = Math.PI / 2; // Horizontal orientation
+    habitat.position.x = 19;          // Centred at x=19, spans x=10 to x=28
+    portModule.add(habitat);
+
+    // 3. Inner end cap — sits at the junction between tunnel and habitat (x=10)
+    const innerCapSolid = new THREE.Mesh(capGeo, capSolidMat);
+    const innerCapWire = new THREE.Mesh(capGeo, capWireMat);
+    innerCapWire.scale.set(1.02, 1.02, 1.02);
+    const innerCap = new THREE.Group();
+    innerCap.add(innerCapSolid);
+    innerCap.add(innerCapWire);
+    innerCap.rotation.z = Math.PI / 2;
+    innerCap.position.x = 10; // Junction point — where tunnel meets habitat
+    portModule.add(innerCap);
+
+    // 4. Outer end cap — sits at the far docking end of the habitat (x=28)
+    const outerCapSolid = new THREE.Mesh(capGeo, capSolidMat);
+    const outerCapWire = new THREE.Mesh(capGeo, capWireMat);
+    outerCapWire.scale.set(1.02, 1.02, 1.02);
+    const outerCap = new THREE.Group();
+    outerCap.add(outerCapSolid);
+    outerCap.add(outerCapWire);
+    outerCap.rotation.z = Math.PI / 2;
+    outerCap.position.x = 28; // Far docking end of habitat
+    portModule.add(outerCap);
+
+    portModule.position.y = yPos;
+    habitatGroup.add(portModule);
+
+    // --- STARBOARD SIDE MODULE (left, -X direction) ---
+    // Exact mirror of the port module — all X positions are negated
+    const starboardModule = new THREE.Group();
+
+    const tunnelSolid2 = new THREE.Mesh(tunnelGeo, tunnelSolidMat);
+    const tunnelWire2 = new THREE.Mesh(tunnelGeo, tunnelWireMat);
+    tunnelWire2.scale.set(1.02, 1.02, 1.02);
+    const tunnel2 = new THREE.Group();
+    tunnel2.add(tunnelSolid2);
+    tunnel2.add(tunnelWire2);
+    tunnel2.rotation.z = Math.PI / 2;
+    tunnel2.position.x = -5; // Mirror of port tunnel
+    starboardModule.add(tunnel2);
+
+    const habitatSolid2 = new THREE.Mesh(habitatGeo, habitatSolidMat);
+    const habitatWire2 = new THREE.Mesh(habitatGeo, habitatWireMat);
+    habitatWire2.scale.set(1.02, 1.02, 1.02);
+    const habitat2 = new THREE.Group();
+    habitat2.add(habitatSolid2);
+    habitat2.add(habitatWire2);
+    habitat2.rotation.z = Math.PI / 2;
+    habitat2.position.x = -19; // Mirror of port habitat
+    starboardModule.add(habitat2);
+
+    const innerCapSolid2 = new THREE.Mesh(capGeo, capSolidMat);
+    const innerCapWire2 = new THREE.Mesh(capGeo, capWireMat);
+    innerCapWire2.scale.set(1.02, 1.02, 1.02);
+    const innerCap2 = new THREE.Group();
+    innerCap2.add(innerCapSolid2);
+    innerCap2.add(innerCapWire2);
+    innerCap2.rotation.z = Math.PI / 2;
+    innerCap2.position.x = -10; // Mirror of port inner cap
+    starboardModule.add(innerCap2);
+
+    const outerCapSolid2 = new THREE.Mesh(capGeo, capSolidMat);
+    const outerCapWire2 = new THREE.Mesh(capGeo, capWireMat);
+    outerCapWire2.scale.set(1.02, 1.02, 1.02);
+    const outerCap2 = new THREE.Group();
+    outerCap2.add(outerCapSolid2);
+    outerCap2.add(outerCapWire2);
+    outerCap2.rotation.z = Math.PI / 2;
+    outerCap2.position.x = -28; // Mirror of port outer cap
+    starboardModule.add(outerCap2);
+
+    starboardModule.position.y = yPos;
+    habitatGroup.add(starboardModule);
 });
-const ringSolid = new THREE.Mesh(ringGeometry, ringSolidMaterial);
-const ringWire = new THREE.Mesh(ringGeometry, ringWireMaterial);
-ringWire.scale.set(1.01, 1.01, 1.01);
 
-// The Torus renders vertically by default. We rotate it 90 degrees (PI/2) to lay flat on the XZ plane.
-ringSolid.rotation.x = Math.PI / 2;
-ringWire.rotation.x = Math.PI / 2;
-dockingGroup.add(ringSolid);
-dockingGroup.add(ringWire);
-
-// 2. The 6 Docking Modules
-for (let i = 0; i < 6; i++) {
-  const moduleGroup = new THREE.Group();
-
-  // Module base and wireframe overlay (Warninig Orange)
-  const modGeo = new THREE.CylinderGeometry(2.5, 2.5, 8, 16);
-  const modSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
-  const modWireMaterial = new THREE.MeshBasicMaterial({
-    color: 0xff4d00,
-    wireframe: true,
-  });
-  const modSolid = new THREE.Mesh(modGeo, modSolidMaterial);
-  const modWire = new THREE.Mesh(modGeo, modWireMaterial);
-  modWire.scale.set(1.02, 1.02, 1.02); // Slightly larger to avoid Z-fighting
-
-  moduleGroup.add(modSolid);
-  moduleGroup.add(modWire);
-
-  // Trigonometry to distribute 6 modules evenly around the 360-degree (2 * PI) ring
-  const angle = (i / 6) * Math.PI * 2;
-  const distance = 22; // Matches the Torus radius so they sit exactly on the ring
-
-  moduleGroup.position.x = Math.cos(angle) * distance;
-  moduleGroup.position.z = Math.sin(angle) * distance;
-
-  // Rotate the cylinders so they point outward like spokes on a wheel
-  moduleGroup.rotation.x = Math.PI / 2;
-  moduleGroup.rotation.z = angle;
-
-  dockingGroup.add(moduleGroup);
-}
-// Attach the entire docking assembly to the main station
-spaceStation.add(dockingGroup);
-
-/* ============================================================================
-   COMPONENT 4: THE SOLAR ARRAYS
-   ============================================================================
-*/
-const solarGroup = new THREE.Group();
-
-for (let i = 0; i < 4; i++) {
-  const panelArm = new THREE.Group();
-
-  // 1. Central Mast
-  const mastGeo = new THREE.CylinderGeometry(0.5, 0.5, 30, 8);
-  const mastSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
-  const mastSolid = new THREE.Mesh(mastGeo, mastSolidMaterial);
-  panelArm.add(mastSolid);
-
-  // 2. The Photovoltaic Panels (Deep blue with Electric Blue wireframe)
-  const panelGeo = new THREE.BoxGeometry(8, 0.2, 26);
-  const panelSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x001133 });
-  const panelWireMaterial = new THREE.MeshBasicMaterial({
-    color: 0x0066ff,
-    wireframe: true,
-  });
-  const panelSolid = new THREE.Mesh(panelGeo, panelSolidMaterial);
-  const panelWire = new THREE.Mesh(panelGeo, panelWireMaterial);
-  panelWire.scale.set(1.01, 1.01, 1.01);
-
-  // Group the solid panel and wireframe together
-  const panelComposite = new THREE.Group();
-  panelComposite.add(panelSolid);
-  panelComposite.add(panelWire);
-
-  // Add the panel composite to the arm
-  panelArm.add(panelComposite);
-
-  // Distribute the 4 arrays evenly
-  const angle = (i / 4) * Math.PI * 2;
-  const distance = 40; // Push these further out past the docking ring
-
-  panelArm.position.x = Math.cos(angle) * distance;
-  panelArm.position.z = Math.sin(angle) * distance;
-
-  // Rotate the arm to point outward
-  panelArm.rotation.x = Math.PI / 2;
-  panelArm.rotation.z = angle;
-
-  // Tilt the panels themselves 30 dgrees (PI/6) on their Y axis for a dynamic, deployed look
-  panelComposite.rotation.y = Math.PI / 6;
-
-  solarGroup.add(panelArm);
-}
-// Attach the arrays to the man station
-spaceStation.add(solarGroup);
+// Attach all habitat modules to the main station hierarchy
+spaceStation.add(habitatGroup);
 
 /* ============================================================================
    COMPONENT 5: THE COMMS TOWERS
