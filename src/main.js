@@ -1,107 +1,105 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// --- STATE MANAGEMENT ---
+const fleet = []; // Array to track all orbiting spacecraft
+let isOrbiting = true; // State toggle for the pause/resume requirement
+let currentOrbitTime = 0; // Independent time tracker for smooth pausing
+let isExternalView = true; // Tracks current camera mode
 
-const fleet = []; // Keeps track of ships
-let isOrbiting = true; // Tracks if the game is paused
-let currentOrbitTime = 0; // Custom time tracker
-let isExternalView = true; // track which view we are currently in
+// --- SCENE SETUP ---
 const canvas = document.querySelector("#c");
-
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 
-    0.1, 1000); // Set up camera
 
-// Set up renderer
-const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+// A dark background, but not pure black, to allow the darkest station parts to be visible
+scene.background = new THREE.Color('#020205');
+
+
+// --- CAMERA SETUP (Perspective Projection Requirement) ---
+// 75 degree FOV, matching browser aspect ratio, near clipping at 0.1, far at 2000 to see distant stars
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 
+    0.1, 2000);
+camera.position.set(0, 30, 150); // Positioned slightly above and pulled back
+
+// --- RENDERER SETUP ---
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 renderer.setSize(window.innerWidth, window.innerHeight); // use the width and height of the browser to render the app
 
-camera.position.z = 120; // Move the camera out
-
-// instantiate the controls and pass in the camera and the canvas element so it knows what to listen to for mouse events
+// --- CAMERA CONTROLS (Free-roaming Requirement) ---
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+controls.enableDamping = true; // Required for smooth, cinematic camera movement
 controls.dampingFactor = 0.05; // Gives it that cinematic, smooth glide
+controls.maxDistance = 500; // Prevents the user from zooming infinitely into the void
 
-// Add the SpaceStation to the scene to be rendered
+/* ============================================================================
+   COMPONENT 1: THE STARFIELD (Environment Context)
+   ============================================================================
+*/
+// Generate 2000 random points in space to create a convincing background
+const starGeometry = new THREE.BufferGeometry();
+const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5});
+const starVertices = [];
+
+for (let i = 0; i < 2000; i++) {
+    const x = (Math.random() - 0.5) * 1000;
+    const y = (Math.random() - 0.5) * 1000;
+    const z = (Math.random() - 0.5) * 1000;
+    starVertices.push(x, y, z);
+}
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+/* ============================================================================
+   COMPONENT 2: THE SPACE STATION (Hierarchical Group)
+   ============================================================================
+*/
+// This is the parent object for all station components. 
+// Rotating this group will rotate the entire station, fulfilling the hierarchy requirement.
 const spaceStation = new THREE.Group();
 scene.add(spaceStation);
 
-// Create placeholder ships
- for (let i = 0; i < 4; i++) {
-    const shipGeometry = new THREE.ConeGeometry(1, 3, 8);
-    const shipMaterial = new THREE.MeshBasicMaterial({color: "#fb8500", wireframe: true});
-    const ship = new THREE.Mesh(shipGeometry, shipMaterial);
-    
-    ship.rotation.x = Math.PI / 2;
-    scene.add(ship); // add to the scene, not spaceStation
+// --- THE CENTRAL CORE ---
+const coreGroup = new THREE.Group();
 
-    // add Ship to the fleet array
-    fleet.push(ship);
- }
+// 1. The Solid Base (Deep Space Grey)
+const coreGeometry = new THREE.SphereGeometry(15, 32, 16);
+const coreSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
+const coreSolid = new THREE.Mesh(coreGeometry, coreSolidMaterial);
 
-// Create the central core
-const centralCoreGeometry = new THREE.SphereGeometry(15, 32, 16);
-const centralCoreMaterial = new THREE.MeshBasicMaterial({color: 0x2A3439, wireframe: true});
-const centralCore = new THREE.Mesh(centralCoreGeometry, centralCoreMaterial);
-spaceStation.add(centralCore);
+// 2. The Wireframe Overlay (Neon Cyan)
+// Scale it up by 1% (1.01) so it sits perfectly on the surface of the solid base without Z-fighting (flickering)
+const coreWireMaterial = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+const coreWire = new THREE.Mesh(coreGeometry, coreWireMaterial);
+coreWire.scale.set(1.01, 1.01, 1.01);
 
-// Create the Comms Towers
-const commsTower1Geometry = new THREE.CylinderGeometry(1.5, 1.5, 20, 32);
-const commsTower1Material = new THREE.MeshBasicMaterial({color: 0xffff00, wireframe: true });
-const commsTower1 = new THREE.Mesh(commsTower1Geometry, commsTower1Material);
-commsTower1.position.y = 25;
-spaceStation.add(commsTower1);
+// 3. Top and Bottom Bulkheads (Caps)
+const bulkheadGeometry = new THREE.CylinderGeometry(12, 12, 4, 32);
+const bulkheadMaterial = new THREE.MeshBasicMaterial( { color: 0x050505 });
+const bulkheadWireMaterial = new THREE.MeshBasicMaterial( { color: 0x00f3ff, wireframe: true });
 
-const commsTower2Geometry = new THREE.CylinderGeometry(1.5, 1.5, 20, 32);
-const commsTower2Material = new THREE.MeshBasicMaterial({color: 0xffff00, wireframe: true });
-const commsTower2 = new THREE.Mesh(commsTower2Geometry, commsTower2Material);
-commsTower2.position.y = -25;
-spaceStation.add(commsTower2);
+// Top Bulk Bulkhead
+const topBulkhead = new THREE.Mesh(bulkheadGeometry, bulkheadMaterial);
+const topBulkheadWire = new THREE.Mesh(bulkheadGeometry, bulkheadWireMaterial);
+topBulkheadWire.scale.set(1.01, 1.01, 1.01);
+topBulkhead.add(topBulkheadWire); // Group wireframe to solid
+topBulkhead.position.y = 14; // Position at the top of the sphere
 
-// Create the 6 docking modules
-for (let i = 0; i < 6; i++) {
-    const dockingModuleGeometry = new THREE.CylinderGeometry(2, 2, 10, 16);
-    const dockingModuleMaterial = new THREE.MeshBasicMaterial({ color: "#219ebc", wireframe: true});
-    const dockingModule = new THREE.Mesh(dockingModuleGeometry, dockingModuleMaterial);
-    /* 
-    To position them in a circle around the core, we calculate the angle for each module, 
-    and then use Sine and Cosine to find the X and Z coordinates. 
-    */
-   const angle = (i / 6) * Math.PI * 2; // Divides a full circle (2 PI) into 6 slices
-   const distance = 20; // How far out from the center they should sit
+// Bottom Bulkhead
+const bottomBulkhead = new THREE.Mesh(bulkheadGeometry, bulkheadMaterial);
+const bottomBulkheadWire = new THREE.Mesh(bulkheadGeometry, bulkheadWireMaterial);
+bottomBulkheadWire.scale.set(1.01, 1.01, 1.01);
+bottomBulkhead.add(bottomBulkheadWire); // Group wireframe to solid
+bottomBulkhead.position.y = -14; // Position at the bottom of the sphere
 
-   dockingModule.position.x = Math.cos(angle) * distance;
-   dockingModule.position.z = Math.sin(angle) * distance;
+// Assemble the Core
+coreGroup.add(coreSolid);
+coreGroup.add(coreWire);
+coreGroup.add(topBulkhead);
+coreGroup.add(bottomBulkhead);
 
-   // Rotata the cylinder so it points outward instead of straight up
-   dockingModule.rotation.x = Math.PI / 2; // Tip it 90 degrees on the X axis
-   dockingModule.rotation.z = angle; // Point it outward
-
-   spaceStation.add(dockingModule);
-}
-
-// Create the 4 solar Panels
-for (let i = 0; i < 4; i++) {
-    const solarPanelsGeometry = new THREE.BoxGeometry(15, 0.5, 10);
-    const solarPanelsMaterial = new THREE.MeshBasicMaterial({ color: "#219ebc", wireframe: true});
-    const solarPanels = new THREE.Mesh(solarPanelsGeometry, solarPanelsMaterial);
-    /* 
-    To position them in a circle around the core, we calculate the angle for each module, 
-    and then use Sine and Cosine to find the X and Z coordinates. 
-    */
-   const angle = (i / 4) * Math.PI * 2; // Divides a full circle (2 PI) into 4 slices
-   const distance = 35; // How far out from the center they should sit
-
-   solarPanels.position.x = Math.cos(angle) * distance;
-   solarPanels.position.z = Math.sin(angle) * distance;
-
-   // Rotata the cylinder so it points outward instead of straight up
-   solarPanels.rotation.x = Math.PI / 2; // Tip it 90 degrees on the X axis
-   solarPanels.rotation.z = angle; // Point it outward
-
-   spaceStation.add(solarPanels);
-}
+// Add the completed core to the main station hierarchy
+spaceStation.add(coreGroup);
 
 window.addEventListener('resize', () => {
     // 1. Update camera aspect ratio
@@ -112,54 +110,8 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
  
-// listens for the "p" key yo toggle the pause state
-window.addEventListener("keydown", e =>{
-    if (e.key.toLowerCase() === "p") {
-        isOrbiting = !isOrbiting; // Flips true to false, or false to true
-        console.log("Orbiting active:", isOrbiting); // Helpful for debugging
-    }
-    if ( e.key.toLowerCase() === "v") {
-        isExternalView = !isExternalView;
-        if (isExternalView) {
-            // External View : Reset to looking at whole station
-            camera.position.set(0, 0, 120);
-            controls.target.set(0, 0, 0);
-        } else {
-            // First-Person View: Teleport inside the first docking ring
-            // The ring is at x = 20, so we stand at x = 18
-            camera.position.set(18, 0, 0);
-            // Look straight out into deep space (towards the positive X axis)
-            controls.target.set(100, 0, 0);
-        }
-    }
-});
 // render (animation loop). This will create a loop that causes the renderer to draw the scene every time the screen is refreshed 
 const animate = time => {
-
-    // increase our custom time if we are not paused
-    // (We add 16.6 milliseconds, which is roughly the time of one frame at 60FPS)
-    if (isOrbiting) {
-        currentOrbitTime += 16.6;
-    }
-    // Orbital physics for the fleet
-    const orbitSpeed = 0.0001; // How fast they fly
-    const orbitRadius = 60; // How far out they fly
-
-    fleet.forEach((ship, index) => {
-        // Add an offset so they don't all clump together (spaces them out by 90 degrees)
-        const angleOffset = (index / fleet.length) * Math.PI * 2;
-        const currentAngle = (currentOrbitTime * orbitSpeed) + angleOffset;
-
-        // calculate new position
-        ship.position.x = Math.cos(currentAngle) * orbitRadius;
-        ship.position.z = Math.sin(currentAngle) * orbitRadius;
-
-        // make the ship face the direction is is flying
-        // A circle's tangent is exactly 90 degrees (PI/2) ahead of its current angle
-        ship.rotation.y = -currentAngle;
-    });
-    spaceStation.rotation.x = time / 2000;
-    spaceStation.rotation.y = time / 1000;
 
     controls.update();
     renderer.render(scene, camera);
