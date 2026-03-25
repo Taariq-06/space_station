@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const fleet = []; // Keeps track of ships
 let isOrbiting = true; // Tracks if the game is paused
 let currentOrbitTime = 0; // Custom time tracker
+let isExternalView = true; // track which view we are currently in
 const canvas = document.querySelector("#c");
 
 const scene = new THREE.Scene();
@@ -15,7 +16,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
 renderer.setSize(window.innerWidth, window.innerHeight); // use the width and height of the browser to render the app
 
-camera.position.z = 40; // Move the camera out
+camera.position.z = 120; // Move the camera out
 
 // instantiate the controls and pass in the camera and the canvas element so it knows what to listen to for mouse events
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -116,6 +117,20 @@ window.addEventListener("keydown", e =>{
     if (e.key.toLowerCase() === "p") {
         isOrbiting = !isOrbiting; // Flips true to false, or false to true
         console.log("Orbiting active:", isOrbiting); // Helpful for debugging
+    }
+    if ( e.key.toLowerCase() === "v") {
+        isExternalView = !isExternalView;
+        if (isExternalView) {
+            // External View : Reset to looking at whole station
+            camera.position.set(0, 0, 120);
+            controls.target.set(0, 0, 0);
+        } else {
+            // First-Person View: Teleport inside the first docking ring
+            // The ring is at x = 20, so we stand at x = 18
+            camera.position.set(18, 0, 0);
+            // Look straight out into deep space (towards the positive X axis)
+            controls.target.set(100, 0, 0);
+        }
     }
 });
 // render (animation loop). This will create a loop that causes the renderer to draw the scene every time the screen is refreshed 
