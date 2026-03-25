@@ -75,7 +75,10 @@ const coreSolid = new THREE.Mesh(coreGeometry, coreSolidMaterial);
 
 // 2. The Wireframe Overlay (Neon Cyan)
 // Scale it up by 1% (1.01) so it sits perfectly on the surface of the solid base without Z-fighting (flickering)
-const coreWireMaterial = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true});
+const coreWireMaterial = new THREE.MeshBasicMaterial({
+  color: 0x00f3ff,
+  wireframe: true,
+});
 const coreWire = new THREE.Mesh(coreGeometry, coreWireMaterial);
 coreWire.scale.set(1.01, 1.01, 1.01);
 
@@ -88,11 +91,13 @@ spaceStation.add(coreGroup);
 // 3. Junction collars — where the sphere meets the spine above and below.
 // These tapered cylinders suggest the sphere is physically bolted onto
 // the truss backbone, rather than just floating around it.
-// CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
 // Notice radiusTop is smaller than radiusBottom — this creates the taper.
 const collarGeo = new THREE.CylinderGeometry(3, 6, 6, 16);
 const collarSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const collarWireMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+const collarWireMat = new THREE.MeshBasicMaterial({
+  color: 0x00f3ff,
+  wireframe: true,
+});
 
 // Top junction collar — sits where the spine exits the top of the sphere
 const topCollarSolid = new THREE.Mesh(collarGeo, collarSolidMat);
@@ -130,7 +135,10 @@ const spineGroup = new THREE.Group();
 // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
 const spineGeo = new THREE.CylinderGeometry(0.8, 0.8, 120, 12);
 const spineSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const spineWireMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+const spineWireMat = new THREE.MeshBasicMaterial({
+  color: 0x00f3ff,
+  wireframe: true,
+});
 
 const spineSolid = new THREE.Mesh(spineGeo, spineSolidMat);
 const spineWire = new THREE.Mesh(spineGeo, spineWireMat);
@@ -146,26 +154,29 @@ spineGroup.add(spineWire);
 // segments on the ISS. They also break up the plain cylinder visually.
 
 for (let i = -3; i <= 3; i++) {
-    // TorusGeometry(radius, tube thickness, radial segments, tubular segments)
-    const collarGeo = new THREE.TorusGeometry(2.2, 0.3, 8, 24);
-    const collarSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-    const collarWireMat = new THREE.MeshBasicMaterial( {color: 0x00f3ff, wireframe: true });
+  // TorusGeometry(radius, tube thickness, radial segments, tubular segments)
+  const collarGeo = new THREE.TorusGeometry(2.2, 0.3, 8, 24);
+  const collarSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const collarWireMat = new THREE.MeshBasicMaterial({
+    color: 0x00f3ff,
+    wireframe: true,
+  });
 
-    const collarSolid = new THREE.Mesh(collarGeo, collarSolidMat);
-    const collarWire = new THREE.Mesh(collarGeo, collarWireMat);
-    collarWire.scale.set(1.01, 1.01, 1.01);
+  const collarSolid = new THREE.Mesh(collarGeo, collarSolidMat);
+  const collarWire = new THREE.Mesh(collarGeo, collarWireMat);
+  collarWire.scale.set(1.01, 1.01, 1.01);
 
-    const collar = new THREE.Group();
-    collar.add(collarSolid);
-    collar.add(collarWire);
+  const collar = new THREE.Group();
+  collar.add(collarSolid);
+  collar.add(collarWire);
 
-    // Rotate the torus so it wraps around the spine horizontally
-    collar.rotation.x = Math.PI / 2;
+  // Rotate the torus so it wraps around the spine horizontally
+  collar.rotation.x = Math.PI / 2;
 
-    // Space the 7 collars evenly - i goes from -3 to +3, multiply by 16
-    collar.position.y = i * 16;
+  // Space the 7 collars evenly - i goes from -3 to +3, multiply by 16
+  collar.position.y = i * 16;
 
-    spineGroup.add(collar);
+  spineGroup.add(collar);
 }
 
 // Attach the spine to the main station group
@@ -205,174 +216,270 @@ const capGeo = new THREE.CylinderGeometry(3.5, 3.5, 0.8, 16);
 
 // Shared materials — defined once, reused for both sides
 const tunnelSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const tunnelWireMat = new THREE.MeshBasicMaterial({ color: 0xff4d00, wireframe: true });
+const tunnelWireMat = new THREE.MeshBasicMaterial({
+  color: 0xff4d00,
+  wireframe: true,
+});
 const habitatSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const habitatWireMat = new THREE.MeshBasicMaterial({ color: 0xff4d00, wireframe: true });
+const habitatWireMat = new THREE.MeshBasicMaterial({
+  color: 0xff4d00,
+  wireframe: true,
+});
 const capSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const capWireMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+const capWireMat = new THREE.MeshBasicMaterial({
+  color: 0x00f3ff,
+  wireframe: true,
+});
 
 moduleHeights.forEach((yPos) => {
+  // --- PORT SIDE MODULE (right, +X direction) ---
+  const portModule = new THREE.Group();
 
-    // --- PORT SIDE MODULE (right, +X direction) ---
-    const portModule = new THREE.Group();
+  // 1. Connecting tunnel — starts inside the spine (x=0) and extends to x=10
+  // Rotated 90 degrees on Z so it points along the X axis horizontally
+  const tunnelSolid = new THREE.Mesh(tunnelGeo, tunnelSolidMat);
+  const tunnelWire = new THREE.Mesh(tunnelGeo, tunnelWireMat);
+  tunnelWire.scale.set(1.02, 1.02, 1.02);
+  const tunnel = new THREE.Group();
+  tunnel.add(tunnelSolid);
+  tunnel.add(tunnelWire);
+  tunnel.rotation.z = Math.PI / 2; // Point along X axis
+  tunnel.position.x = 5; // Centred at x=5, spans x=0 to x=10
+  portModule.add(tunnel);
 
-    // 1. Connecting tunnel — starts inside the spine (x=0) and extends to x=10
-    // Rotated 90 degrees on Z so it points along the X axis horizontally
-    const tunnelSolid = new THREE.Mesh(tunnelGeo, tunnelSolidMat);
-    const tunnelWire = new THREE.Mesh(tunnelGeo, tunnelWireMat);
-    tunnelWire.scale.set(1.02, 1.02, 1.02);
-    const tunnel = new THREE.Group();
-    tunnel.add(tunnelSolid);
-    tunnel.add(tunnelWire);
-    tunnel.rotation.z = Math.PI / 2; // Point along X axis
-    tunnel.position.x = 5;           // Centred at x=5, spans x=0 to x=10
-    portModule.add(tunnel);
+  // 2. Main habitat cylinder — begins exactly where the tunnel ends (x=10)
+  const habitatSolid = new THREE.Mesh(habitatGeo, habitatSolidMat);
+  const habitatWire = new THREE.Mesh(habitatGeo, habitatWireMat);
+  habitatWire.scale.set(1.02, 1.02, 1.02);
+  const habitat = new THREE.Group();
+  habitat.add(habitatSolid);
+  habitat.add(habitatWire);
+  habitat.rotation.z = Math.PI / 2; // Horizontal orientation
+  habitat.position.x = 19; // Centred at x=19, spans x=10 to x=28
+  portModule.add(habitat);
 
-    // 2. Main habitat cylinder — begins exactly where the tunnel ends (x=10)
-    const habitatSolid = new THREE.Mesh(habitatGeo, habitatSolidMat);
-    const habitatWire = new THREE.Mesh(habitatGeo, habitatWireMat);
-    habitatWire.scale.set(1.02, 1.02, 1.02);
-    const habitat = new THREE.Group();
-    habitat.add(habitatSolid);
-    habitat.add(habitatWire);
-    habitat.rotation.z = Math.PI / 2; // Horizontal orientation
-    habitat.position.x = 19;          // Centred at x=19, spans x=10 to x=28
-    portModule.add(habitat);
+  // 3. Inner end cap — sits at the junction between tunnel and habitat (x=10)
+  const innerCapSolid = new THREE.Mesh(capGeo, capSolidMat);
+  const innerCapWire = new THREE.Mesh(capGeo, capWireMat);
+  innerCapWire.scale.set(1.02, 1.02, 1.02);
+  const innerCap = new THREE.Group();
+  innerCap.add(innerCapSolid);
+  innerCap.add(innerCapWire);
+  innerCap.rotation.z = Math.PI / 2;
+  innerCap.position.x = 10; // Junction point — where tunnel meets habitat
+  portModule.add(innerCap);
 
-    // 3. Inner end cap — sits at the junction between tunnel and habitat (x=10)
-    const innerCapSolid = new THREE.Mesh(capGeo, capSolidMat);
-    const innerCapWire = new THREE.Mesh(capGeo, capWireMat);
-    innerCapWire.scale.set(1.02, 1.02, 1.02);
-    const innerCap = new THREE.Group();
-    innerCap.add(innerCapSolid);
-    innerCap.add(innerCapWire);
-    innerCap.rotation.z = Math.PI / 2;
-    innerCap.position.x = 10; // Junction point — where tunnel meets habitat
-    portModule.add(innerCap);
+  // 4. Outer end cap — sits at the far docking end of the habitat (x=28)
+  const outerCapSolid = new THREE.Mesh(capGeo, capSolidMat);
+  const outerCapWire = new THREE.Mesh(capGeo, capWireMat);
+  outerCapWire.scale.set(1.02, 1.02, 1.02);
+  const outerCap = new THREE.Group();
+  outerCap.add(outerCapSolid);
+  outerCap.add(outerCapWire);
+  outerCap.rotation.z = Math.PI / 2;
+  outerCap.position.x = 28; // Far docking end of habitat
+  portModule.add(outerCap);
 
-    // 4. Outer end cap — sits at the far docking end of the habitat (x=28)
-    const outerCapSolid = new THREE.Mesh(capGeo, capSolidMat);
-    const outerCapWire = new THREE.Mesh(capGeo, capWireMat);
-    outerCapWire.scale.set(1.02, 1.02, 1.02);
-    const outerCap = new THREE.Group();
-    outerCap.add(outerCapSolid);
-    outerCap.add(outerCapWire);
-    outerCap.rotation.z = Math.PI / 2;
-    outerCap.position.x = 28; // Far docking end of habitat
-    portModule.add(outerCap);
+  portModule.position.y = yPos;
+  habitatGroup.add(portModule);
 
-    portModule.position.y = yPos;
-    habitatGroup.add(portModule);
+  // --- STARBOARD SIDE MODULE (left, -X direction) ---
+  // Exact mirror of the port module — all X positions are negated
+  const starboardModule = new THREE.Group();
 
-    // --- STARBOARD SIDE MODULE (left, -X direction) ---
-    // Exact mirror of the port module — all X positions are negated
-    const starboardModule = new THREE.Group();
+  const tunnelSolid2 = new THREE.Mesh(tunnelGeo, tunnelSolidMat);
+  const tunnelWire2 = new THREE.Mesh(tunnelGeo, tunnelWireMat);
+  tunnelWire2.scale.set(1.02, 1.02, 1.02);
+  const tunnel2 = new THREE.Group();
+  tunnel2.add(tunnelSolid2);
+  tunnel2.add(tunnelWire2);
+  tunnel2.rotation.z = Math.PI / 2;
+  tunnel2.position.x = -5; // Mirror of port tunnel
+  starboardModule.add(tunnel2);
 
-    const tunnelSolid2 = new THREE.Mesh(tunnelGeo, tunnelSolidMat);
-    const tunnelWire2 = new THREE.Mesh(tunnelGeo, tunnelWireMat);
-    tunnelWire2.scale.set(1.02, 1.02, 1.02);
-    const tunnel2 = new THREE.Group();
-    tunnel2.add(tunnelSolid2);
-    tunnel2.add(tunnelWire2);
-    tunnel2.rotation.z = Math.PI / 2;
-    tunnel2.position.x = -5; // Mirror of port tunnel
-    starboardModule.add(tunnel2);
+  const habitatSolid2 = new THREE.Mesh(habitatGeo, habitatSolidMat);
+  const habitatWire2 = new THREE.Mesh(habitatGeo, habitatWireMat);
+  habitatWire2.scale.set(1.02, 1.02, 1.02);
+  const habitat2 = new THREE.Group();
+  habitat2.add(habitatSolid2);
+  habitat2.add(habitatWire2);
+  habitat2.rotation.z = Math.PI / 2;
+  habitat2.position.x = -19; // Mirror of port habitat
+  starboardModule.add(habitat2);
 
-    const habitatSolid2 = new THREE.Mesh(habitatGeo, habitatSolidMat);
-    const habitatWire2 = new THREE.Mesh(habitatGeo, habitatWireMat);
-    habitatWire2.scale.set(1.02, 1.02, 1.02);
-    const habitat2 = new THREE.Group();
-    habitat2.add(habitatSolid2);
-    habitat2.add(habitatWire2);
-    habitat2.rotation.z = Math.PI / 2;
-    habitat2.position.x = -19; // Mirror of port habitat
-    starboardModule.add(habitat2);
+  const innerCapSolid2 = new THREE.Mesh(capGeo, capSolidMat);
+  const innerCapWire2 = new THREE.Mesh(capGeo, capWireMat);
+  innerCapWire2.scale.set(1.02, 1.02, 1.02);
+  const innerCap2 = new THREE.Group();
+  innerCap2.add(innerCapSolid2);
+  innerCap2.add(innerCapWire2);
+  innerCap2.rotation.z = Math.PI / 2;
+  innerCap2.position.x = -10; // Mirror of port inner cap
+  starboardModule.add(innerCap2);
 
-    const innerCapSolid2 = new THREE.Mesh(capGeo, capSolidMat);
-    const innerCapWire2 = new THREE.Mesh(capGeo, capWireMat);
-    innerCapWire2.scale.set(1.02, 1.02, 1.02);
-    const innerCap2 = new THREE.Group();
-    innerCap2.add(innerCapSolid2);
-    innerCap2.add(innerCapWire2);
-    innerCap2.rotation.z = Math.PI / 2;
-    innerCap2.position.x = -10; // Mirror of port inner cap
-    starboardModule.add(innerCap2);
+  const outerCapSolid2 = new THREE.Mesh(capGeo, capSolidMat);
+  const outerCapWire2 = new THREE.Mesh(capGeo, capWireMat);
+  outerCapWire2.scale.set(1.02, 1.02, 1.02);
+  const outerCap2 = new THREE.Group();
+  outerCap2.add(outerCapSolid2);
+  outerCap2.add(outerCapWire2);
+  outerCap2.rotation.z = Math.PI / 2;
+  outerCap2.position.x = -28; // Mirror of port outer cap
+  starboardModule.add(outerCap2);
 
-    const outerCapSolid2 = new THREE.Mesh(capGeo, capSolidMat);
-    const outerCapWire2 = new THREE.Mesh(capGeo, capWireMat);
-    outerCapWire2.scale.set(1.02, 1.02, 1.02);
-    const outerCap2 = new THREE.Group();
-    outerCap2.add(outerCapSolid2);
-    outerCap2.add(outerCapWire2);
-    outerCap2.rotation.z = Math.PI / 2;
-    outerCap2.position.x = -28; // Mirror of port outer cap
-    starboardModule.add(outerCap2);
-
-    starboardModule.position.y = yPos;
-    habitatGroup.add(starboardModule);
+  starboardModule.position.y = yPos;
+  habitatGroup.add(starboardModule);
 });
 
 // Attach all habitat modules to the main station hierarchy
 spaceStation.add(habitatGroup);
 
 /* ============================================================================
-   COMPONENT 5: THE COMMS TOWERS
-   ============================================================================
-*/
-const commsGroup = new THREE.Group();
+COMPONENT 5: SOLAR ARRAY ARMS (minimum 4 required)
+============================================================================
+Four solar array arms attach to the spine at four vertical positions,
+two on each side (port and starboard), alternating like the ISS arrays.
 
-// Tower Geometries
-const baseGeo = new THREE.CylinderGeometry(1.5, 2.5, 8, 16);
-const antennaGeo = new THREE.CylinderGeometry(0.2, 0.2, 12, 8);
-const dishGeo = new THREE.ConeGeometry(3, 2, 16);
+Each arm consists of:
+1. A horizontal boom extending from the spine
+2. Cross-brace rings along the boom — suggesting truss construction
+3. Two photovoltaic panels (fore and aft of the boom)
 
-// Materials (Using brighter accents to simulate navigational beacons)
-const baseMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-const accentMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 }); // Warning Yellow
-const commsWireMat = new THREE.MeshBasicMaterial({
-  color: 0xffffff,
-  wireframe: true,
+The entire solarGroup has its own rotation on top of the station rotation.
+This is a hierarchical transformation — the panels inherit the station's
+rotation AND rotate independently to imply sun-tracking.
+============================================================================ */
+const solarGroup = new THREE.Group();
+
+// The 4 attachment points on the spine
+// [yPosition, side] — +1 is port (right), -1 is starboard (left)
+// Alternating port/starboard matches real ISS truss layout
+const arrayMounts = [
+  [45, 1], // Upper port
+  [45, -1], // Upper starboard
+  [-45, 1], // Lower port
+  [-45, -1], // Lower starboard
+];
+
+arrayMounts.forEach(([yPos, side]) => {
+  const arrayArm = new THREE.Group();
+
+  // 1. Main boom — a thin horizontal cylinder extending from the spine
+  // CylinderGeometry by default points along Y axis.
+  // rotate it 90 degrees on Z to point along the X axis instead.
+  const boomGeo = new THREE.CylinderGeometry(0.4, 0.4, 45, 8);
+  const boomSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const boomWireMat = new THREE.MeshBasicMaterial({
+    color: 0x00f3ff,
+    wireframe: true,
+  });
+  const boomSolid = new THREE.Mesh(boomGeo, boomSolidMat);
+  const boomWire = new THREE.Mesh(boomGeo, boomWireMat);
+  boomWire.scale.set(1.02, 1.02, 1.02);
+  const boom = new THREE.Group();
+  boom.add(boomSolid);
+  boom.add(boomWire);
+  boom.rotation.z = Math.PI / 2; // Point along X axis
+  boom.position.x = side * 22.5; // Centre the boom so it extends outward
+  arrayArm.add(boom);
+
+  // 2. Cross-brace rings — structural detail along the boom
+  // These suggest the boom is a lattice truss, not just a plain cylinder.
+  // place 5 rings evenly spaced along the boom length.
+  for (let b = -2; b <= 2; b++) {
+    const braceGeo = new THREE.TorusGeometry(1.5, 0.2, 6, 12);
+    const braceSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const braceWireMat = new THREE.MeshBasicMaterial({
+      color: 0x00f3ff,
+      wireframe: true,
+    });
+    const braceSolid = new THREE.Mesh(braceGeo, braceSolidMat);
+    const braceWire = new THREE.Mesh(braceGeo, braceWireMat);
+    braceWire.scale.set(1.02, 1.02, 1.02);
+    const brace = new THREE.Group();
+    brace.add(braceSolid);
+    brace.add(braceWire);
+    // Rotate the torus to wrap around the boom (which points along X)
+    brace.rotation.x = Math.PI / 2;
+    // Space the 5 braces evenly along the boom
+    // b goes from -2 to +2, multiply by 8 to spread them out
+    brace.position.x = side * (22.5 + b * 8);
+    arrayArm.add(brace);
+  }
+
+  // 3. Photovoltaic panels — two flat boxes per arm, fore and aft of the boom
+  // BoxGeometry(width, height, depth)
+  // Very thin on Y (0.15) to represent a flat panel surface
+  const panelGeo = new THREE.BoxGeometry(5, 0.15, 24);
+  const panelSolidMat = new THREE.MeshBasicMaterial({ color: 0x001133 });
+  const panelWireMat = new THREE.MeshBasicMaterial({
+    color: 0x0066ff,
+    wireframe: true,
+  });
+
+  // Fore panel — in front of the boom on the Z axis
+  const forePanelSolid = new THREE.Mesh(panelGeo, panelSolidMat);
+  const forePanelWire = new THREE.Mesh(panelGeo, panelWireMat);
+  forePanelWire.scale.set(1.01, 1.01, 1.01);
+  const forePanel = new THREE.Group();
+  forePanel.add(forePanelSolid);
+  forePanel.add(forePanelWire);
+  forePanel.position.x = side * 22.5; // Same X centre as the boom
+  forePanel.position.z = 15; // Offset forward on Z
+  arrayArm.add(forePanel);
+
+  // Aft panel — behind the boom on the Z axis
+  const aftPanelSolid = new THREE.Mesh(panelGeo, panelSolidMat);
+  const aftPanelWire = new THREE.Mesh(panelGeo, panelWireMat);
+  aftPanelWire.scale.set(1.01, 1.01, 1.01);
+  const aftPanel = new THREE.Group();
+  aftPanel.add(aftPanelSolid);
+  aftPanel.add(aftPanelWire);
+  aftPanel.position.x = side * 22.5; // Same X centre as the boom
+  aftPanel.position.z = -15; // Offset backward on Z
+  arrayArm.add(aftPanel);
+
+  // Panel mounting brackets — small connectors bridging the boom to each panel
+  // These are the physical attachment points that make the assembly believable
+  // BoxGeometry(width, height, depth)
+  const bracketGeo = new THREE.BoxGeometry(1, 1, 6);
+  const bracketSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const bracketWireMat = new THREE.MeshBasicMaterial({
+    color: 0x00f3ff,
+    wireframe: true,
+  });
+
+  // Fore bracket — connects boom to fore panel
+  const foreBracketSolid = new THREE.Mesh(bracketGeo, bracketSolidMat);
+  const foreBracketWire = new THREE.Mesh(bracketGeo, bracketWireMat);
+  foreBracketWire.scale.set(1.02, 1.02, 1.02);
+  const foreBracket = new THREE.Group();
+  foreBracket.add(foreBracketSolid);
+  foreBracket.add(foreBracketWire);
+  foreBracket.position.x = side * 22.5; // Aligned with boom centre
+  foreBracket.position.z = 6; // Bridges gap to fore panel
+  arrayArm.add(foreBracket);
+
+  // Aft bracket — connects boom to aft panel
+  const aftBracketSolid = new THREE.Mesh(bracketGeo, bracketSolidMat);
+  const aftBracketWire = new THREE.Mesh(bracketGeo, bracketWireMat);
+  aftBracketWire.scale.set(1.02, 1.02, 1.02);
+  const aftBracket = new THREE.Group();
+  aftBracket.add(aftBracketSolid);
+  aftBracket.add(aftBracketWire);
+  aftBracket.position.x = side * 22.5; // Aligned with boom centre
+  aftBracket.position.z = -6; // Bridges gap to aft panel
+  arrayArm.add(aftBracket);
+
+  arrayArm.position.y = yPos; // Mount at the correct height on the spine
+  solarGroup.add(arrayArm);
 });
 
-// Use a function to build the towers to keep the codebase DRY ( Don't Repeat Yourself)
-const buildTower = (isTop) => {
-  const tower = new THREE.Group();
-
-  // 1. The Base
-  const base = new THREE.Mesh(baseGeo, baseMat);
-  const baseWire = new THREE.Mesh(baseGeo, commsWireMat);
-  baseWire.scale.set(1.02, 1.02, 1.02);
-  base.add(baseWire);
-  base.position.y = 4; // Shift up so the bottom resrs on the core
-
-  // 2. The Antenna Mast
-  const antenna = new THREE.Mesh(antennaGeo, accentMat);
-  antenna.position.y = 14;
-
-  // 3. The Transmitter Dish
-  const dish = new THREE.Mesh(dishGeo, baseMat);
-  const dishWire = new THREE.Mesh(dishGeo, commsWireMat);
-  dishWire.scale.set(1.05, 1.05, 1.05);
-  dish.add(dishWire);
-  dish.position.y = 20;
-  dish.rotation.x = Math.PI / 2; // Tilt outward to scan deep space
-
-  tower.add(base);
-  tower.add(antenna);
-  tower.add(dish);
-
-  // Position the entire tower group
-  if (isTop) {
-    tower.position.y = 16; // Rest on the top bulkhead
-  } else {
-    tower.position.y = -16; // Rest on the bottom bulkkhead
-    tower.rotation.x = Math.PI; // Flip exactly 180 degrees upside down
-  }
-  return tower;
-};
-commsGroup.add(buildTower(true));
-commsGroup.add(buildTower(false));
-spaceStation.add(commsGroup);
+// Attach the solar group to the station hierarchy.
+// Because solarGroup is a child of spaceStation, it inherits the station's
+// rotation. In the animation loop there is extra rotation added on top of this,
+// which is what creates the independent sun-tracking movement.
+spaceStation.add(solarGroup);
 
 /* ============================================================================
 COMPONENT 6: THE FLEET (Dynamic Spacecraft)
@@ -464,6 +571,10 @@ const animate = (time) => {
     spaceStation.rotation.z += 0.0005;
   }
 
+  // Solar panels rotate independently on Y — implies sun-tracking
+  // This rotation is relative to the station, not the world
+  solarGroup.rotation.y += 0.005;
+
   // Orbital physics for the fleet
   const orbitSpeed = 0.0005;
   const orbitRadius = 70; // Fly in a wide perimeter around the solar arrays
@@ -471,7 +582,7 @@ const animate = (time) => {
   fleet.forEach((ship, index) => {
     // Space them out evenly (360 degrees / 4 ships)
     const angleOffset = (index / fleet.length) * Math.PI * 2;
-    const currentAngle = (currentOrbitTime * orbitSpeed) + angleOffset;
+    const currentAngle = currentOrbitTime * orbitSpeed + angleOffset;
 
     // Apply Trigonometric Translation
     ship.position.x = Math.cos(currentAngle) * orbitRadius;
