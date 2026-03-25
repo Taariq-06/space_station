@@ -69,7 +69,7 @@ scene.add(spaceStation);
 const coreGroup = new THREE.Group();
 
 // 1. The Solid Base (Deep Space Grey)
-const coreGeometry = new THREE.SphereGeometry(15, 32, 16);
+const coreGeometry = new THREE.SphereGeometry(16, 32, 16);
 const coreSolidMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
 const coreSolid = new THREE.Mesh(coreGeometry, coreSolidMaterial);
 
@@ -79,36 +79,40 @@ const coreWireMaterial = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wirefram
 const coreWire = new THREE.Mesh(coreGeometry, coreWireMaterial);
 coreWire.scale.set(1.01, 1.01, 1.01);
 
-// 3. Top and Bottom Bulkheads (Caps)
-const bulkheadGeometry = new THREE.CylinderGeometry(12, 12, 4, 32);
-const bulkheadMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const bulkheadWireMaterial = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
-
-// Top Bulk Bulkhead
-const topBulkhead = new THREE.Mesh(bulkheadGeometry, bulkheadMaterial);
-const topBulkheadWire = new THREE.Mesh(bulkheadGeometry, bulkheadWireMaterial);
-topBulkheadWire.scale.set(1.01, 1.01, 1.01);
-topBulkhead.add(topBulkheadWire); // Group wireframe to solid
-topBulkhead.position.y = 14; // Position at the top of the sphere
-
-// Bottom Bulkhead
-const bottomBulkhead = new THREE.Mesh(bulkheadGeometry, bulkheadMaterial);
-const bottomBulkheadWire = new THREE.Mesh(
-  bulkheadGeometry,
-  bulkheadWireMaterial,
-);
-bottomBulkheadWire.scale.set(1.01, 1.01, 1.01);
-bottomBulkhead.add(bottomBulkheadWire); // Group wireframe to solid
-bottomBulkhead.position.y = -14; // Position at the bottom of the sphere
-
 // Assemble the Core
 coreGroup.add(coreSolid);
 coreGroup.add(coreWire);
-coreGroup.add(topBulkhead);
-coreGroup.add(bottomBulkhead);
 
-// Add the completed core to the main station hierarchy
 spaceStation.add(coreGroup);
+
+// 3. Junction collars — where the sphere meets the spine above and below.
+// These tapered cylinders suggest the sphere is physically bolted onto
+// the truss backbone, rather than just floating around it.
+// CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
+// Notice radiusTop is smaller than radiusBottom — this creates the taper.
+const collarGeo = new THREE.CylinderGeometry(3, 6, 6, 16);
+const collarSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+const collarWireMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+
+// Top junction collar — sits where the spine exits the top of the sphere
+const topCollarSolid = new THREE.Mesh(collarGeo, collarSolidMat);
+const topCollarWire = new THREE.Mesh(collarGeo, collarWireMat);
+topCollarWire.scale.set(1.01, 1.01, 1.01);
+const topCollar = new THREE.Group();
+topCollar.add(topCollarSolid);
+topCollar.add(topCollarWire);
+topCollar.position.y = 15; // Sit at the top edge of the sphere
+coreGroup.add(topCollar);
+
+// Bottom junction collar — mirrors the top exactly
+const bottomCollarSolid = new THREE.Mesh(collarGeo, collarSolidMat);
+const bottomCollarWire = new THREE.Mesh(collarGeo, collarWireMat);
+bottomCollarWire.scale.set(1.01, 1.01, 1.01);
+const bottomCollar = new THREE.Group();
+bottomCollar.add(bottomCollarSolid);
+bottomCollar.add(bottomCollarWire);
+bottomCollar.position.y = -15; // Mirror position at the bottom
+coreGroup.add(bottomCollar);
 
 /* ============================================================================
 COMPONENT 3: THE CENTRAL SPINE
