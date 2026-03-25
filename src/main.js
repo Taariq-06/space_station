@@ -75,20 +75,14 @@ const coreSolid = new THREE.Mesh(coreGeometry, coreSolidMaterial);
 
 // 2. The Wireframe Overlay (Neon Cyan)
 // Scale it up by 1% (1.01) so it sits perfectly on the surface of the solid base without Z-fighting (flickering)
-const coreWireMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00f3ff,
-  wireframe: true,
-});
+const coreWireMaterial = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true});
 const coreWire = new THREE.Mesh(coreGeometry, coreWireMaterial);
 coreWire.scale.set(1.01, 1.01, 1.01);
 
 // 3. Top and Bottom Bulkheads (Caps)
 const bulkheadGeometry = new THREE.CylinderGeometry(12, 12, 4, 32);
 const bulkheadMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
-const bulkheadWireMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00f3ff,
-  wireframe: true,
-});
+const bulkheadWireMaterial = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
 
 // Top Bulk Bulkhead
 const topBulkhead = new THREE.Mesh(bulkheadGeometry, bulkheadMaterial);
@@ -117,7 +111,64 @@ coreGroup.add(bottomBulkhead);
 spaceStation.add(coreGroup);
 
 /* ============================================================================
-   COMPONENT 3: THE DOCKING HUB
+COMPONENT 3: THE CENTRAL SPINE
+============================================================================
+The spine is the structural backbone of the station — a vertical truss
+that runs the full height of the station along the Y axis. Every major
+component (habitat modules, solar arrays, comms towers) will attach to
+this. Without it, the station has no engineering logic.
+
+Real analogue: the Integrated Truss Structure (ITS) on the ISS (International Space Station).
+============================================================================ */
+const spineGroup = new THREE.Group();
+
+// The main truss cylinder — tall and thin, running along the Y axis
+// CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
+const spineGeo = new THREE.CylinderGeometry(0.8, 0.8, 120, 12);
+const spineSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+const spineWireMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+
+const spineSolid = new THREE.Mesh(spineGeo, spineSolidMat);
+const spineWire = new THREE.Mesh(spineGeo, spineWireMat);
+
+// Scale the wireframe up by 1% to sit on the surface without Z-fighting
+spineWire.scale.set(1.01, 1.01, 1.01);
+
+spineGroup.add(spineSolid);
+spineGroup.add(spineWire);
+
+// Add evenly spaced collar rings along the spine.
+// These suggest segmented truss construction — like the P/S truss
+// segments on the ISS. They also break up the plain cylinder visually.
+
+for (let i = -3; i <= 3; i++) {
+    // TorusGeometry(radius, tube thickness, radial segments, tubular segments)
+    const collarGeo = new THREE.TorusGeometry(2.2, 0.3, 8, 24);
+    const collarSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const collarWireMat = new THREE.MeshBasicMaterial( {color: 0x00f3ff, wireframe: true });
+
+    const collarSolid = new THREE.Mesh(collarGeo, collarSolidMat);
+    const collarWire = new THREE.Mesh(collarGeo, collarWireMat);
+    collarWire.scale.set(1.01, 1.01, 1.01);
+
+    const collar = new THREE.Group();
+    collar.add(collarSolid);
+    collar.add(collarWire);
+
+    // Rotate the torus so it wraps around the spine horizontally
+    collar.rotation.x = Math.PI / 2;
+
+    // Space the 7 collars evenly - i goes from -3 to +3, multiply by 16
+    collar.position.y = i * 16;
+
+    spineGroup.add(collar);
+}
+
+// Attach the spine to the main station group
+spaceStation.add(spineGroup);
+
+/* ============================================================================
+   COMPONENT 4: THE DOCKING HUB
    ============================================================================
 */
 const dockingGroup = new THREE.Group();
@@ -360,7 +411,7 @@ window.addEventListener("keydown", (e) => {
       // The ring is at x = 22, so we place the camera at x = 20
       camera.position.set(20, 0, 0);
       // Look straight out into the starfield (towards positive X)
-      controls.target.set(100, 0, 0);
+      controls.target.set(20.1, 0, 0);
     }
   }
 });
