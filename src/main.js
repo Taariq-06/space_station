@@ -482,6 +482,104 @@ arrayMounts.forEach(([yPos, side]) => {
 spaceStation.add(solarGroup);
 
 /* ============================================================================
+COMPONENT 6: COMMUNICATION TOWERS (minimum 2 required)
+============================================================================
+Two communication towers sit at the top and bottom ends of the spine.
+Each tower has a base plate, a telescoping mast, a parabolic dish,
+and a beacon tip.
+
+The buildTower function builds both towers from a single definition.
+Passing isTop=true builds the top tower. isTop=false builds the bottom
+tower — the direction multiplier (dir) flips all Y positions so the
+bottom tower is a perfect mirror of the top without duplicating code.
+============================================================================ */
+const commsGroup = new THREE.Group();
+
+const buildTower = (isTop) => {
+    const tower = new THREE.Group();
+
+    // Direction multiplier — +1 for top tower, -1 for bottom tower.
+    // Multiplying all Y positions by dir means the bottom tower is
+    // automatically a vertical mirror of the top.
+    const dir = isTop ? 1 : -1;
+
+    // 1. Base mounting plate — wide flat cylinder that sits flush
+    // on the end of the spine, like a bolted flange connection.
+    // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
+    const baseGeo = new THREE.CylinderGeometry(4, 4, 2, 16);
+    const baseSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const baseWireMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, wireframe: true });
+    const baseSolid = new THREE.Mesh(baseGeo, baseSolidMat);
+    const baseWire = new THREE.Mesh(baseGeo, baseWireMat);
+    baseWire.scale.set(1.02, 1.02, 1.02);
+    const base = new THREE.Group();
+    base.add(baseSolid);
+    base.add(baseWire);
+    base.position.y = dir * 1; // Sit flush at the spine end
+    tower.add(base);
+
+    // 2. Telescoping mast — 3 stacked cylinders of decreasing radius.
+    // This gives the impression of a multi-stage extendable antenna mast.
+    // Each segment is narrower than the one below it.
+    const mastSegments = [
+        { radiusTop: 1.4, radiusBottom: 1.8, height: 12, y: dir * 8  },
+        { radiusTop: 0.9, radiusBottom: 1.2, height: 10, y: dir * 19 },
+        { radiusTop: 0.4, radiusBottom: 0.8, height: 8,  y: dir * 28 },
+    ];
+
+    mastSegments.forEach(({ radiusTop, radiusBottom, height, y }) => {
+        const mastGeo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 10);
+        const mastSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+        const mastWireMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, wireframe: true });
+        const mastSolid = new THREE.Mesh(mastGeo, mastSolidMat);
+        const mastWire = new THREE.Mesh(mastGeo, mastWireMat);
+        mastWire.scale.set(1.02, 1.02, 1.02);
+        const mast = new THREE.Group();
+        mast.add(mastSolid);
+        mast.add(mastWire);
+        mast.position.y = y;
+        tower.add(mast);
+    });
+
+    // 3. Parabolic dish — a cone tilted at 45 degrees.
+    // Real station dishes tilt to maintain lock on Earth or satellites.
+    // ConeGeometry(radius, height, radialSegments)
+    const dishGeo = new THREE.ConeGeometry(5, 3, 20);
+    const dishSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const dishWireMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, wireframe: true });
+    const dishSolid = new THREE.Mesh(dishGeo, dishSolidMat);
+    const dishWire = new THREE.Mesh(dishGeo, dishWireMat);
+    dishWire.scale.set(1.02, 1.02, 1.02);
+    const dish = new THREE.Group();
+    dish.add(dishSolid);
+    dish.add(dishWire);
+    dish.position.y = dir * 34;
+    // Tilt the dish outward at 45 degrees — scanning position
+    // The tilt direction flips between top and bottom tower
+    dish.rotation.x = isTop ? Math.PI / 4 : -Math.PI / 4;
+    tower.add(dish);
+
+    // 4. Beacon tip — small sphere at the very top of the mast.
+    // Represents the navigational beacon light on real stations.
+    // Coloured cyan to match the primary structural colour language.
+    const beaconGeo = new THREE.SphereGeometry(0.8, 8, 8);
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+    const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+    beacon.position.y = dir * 38; // Very tip of the mast
+    tower.add(beacon);
+
+    // Position the whole tower at the end of the spine.
+    // The spine is 120 units tall so its tips are at Y = +60 and Y = -60
+    tower.position.y = dir * 60;
+
+    return tower;
+};
+
+commsGroup.add(buildTower(true));  // Top tower
+commsGroup.add(buildTower(false)); // Bottom tower — automatically mirrored
+spaceStation.add(commsGroup);
+
+/* ============================================================================
 COMPONENT 6: THE FLEET (Dynamic Spacecraft)
 ============================================================================
 */
@@ -567,8 +665,8 @@ const animate = (time) => {
     currentOrbitTime += 16.6;
     // Slowly rotate the massive station on multiple axes
     spaceStation.rotation.y += 0.002;
-    spaceStation.rotation.x += 0.0005;
-    spaceStation.rotation.z += 0.0005;
+    spaceStation.rotation.x += 0.0001;
+    spaceStation.rotation.z += 0.0001;
   }
 
   // Solar panels rotate independently on Y — implies sun-tracking
