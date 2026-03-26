@@ -7,6 +7,9 @@ let isOrbiting = true; // State toggle for the pause/resume requirement
 let currentOrbitTime = 0; // Independent time tracker for smooth pausing
 let isExternalView = true; // Tracks current camera mode
 
+// Tracks which movement keys are currently held down for free-roam camera
+const keys = { w: false, a: false, s: false, d: false, q: false, e: false };
+
 // --- SCENE SETUP ---
 const canvas = document.querySelector("#c");
 const scene = new THREE.Scene();
@@ -31,7 +34,7 @@ renderer.setSize(window.innerWidth, window.innerHeight); // use the width and he
 // --- CAMERA CONTROLS (Free-roaming Requirement) ---
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; // Required for smooth, cinematic camera movement
-controls.dampingFactor = 0.05; // Gives it that cinematic, smooth glide
+controls.dampingFactor = 0.03; // Gives it that cinematic, smooth glide
 controls.maxDistance = 500; // Prevents the user from zooming infinitely into the void
 
 /* ============================================================================
@@ -657,6 +660,26 @@ window.addEventListener("keydown", (e) => {
       controls.target.set(20.1, 0, 0);
     }
   }
+
+  // Free-roam movement — record which keys are held down
+    // We track keydown and keyup separately so holding a key
+    // moves the camera continuously, not just on the first press
+    if (e.key.toLowerCase() === "w") keys.w = true;
+    if (e.key.toLowerCase() === "s") keys.s = true;
+    if (e.key.toLowerCase() === "a") keys.a = true;
+    if (e.key.toLowerCase() === "d") keys.d = true;
+    if (e.key.toLowerCase() === "q") keys.q = true; // Move down
+    if (e.key.toLowerCase() === "e") keys.e = true; // Move up
+});
+
+// When a key is released, stop moving in that direction
+window.addEventListener("keyup", (e) => {
+    if (e.key.toLowerCase() === "w") keys.w = false;
+    if (e.key.toLowerCase() === "s") keys.s = false;
+    if (e.key.toLowerCase() === "a") keys.a = false;
+    if (e.key.toLowerCase() === "d") keys.d = false;
+    if (e.key.toLowerCase() === "q") keys.q = false;
+    if (e.key.toLowerCase() === "e") keys.e = false;
 });
 
 const animate = (time) => {
@@ -691,6 +714,37 @@ const animate = (time) => {
     ship.rotation.y = -currentAngle;
   });
 
+  // --- FREE-ROAM CAMERA MOVEMENT ---
+// We move the camera relative to its own orientation, not world axes.
+// This means W always moves toward where you are looking,
+// A/D always strafes left/right relative to your view direction.
+
+const moveSpeed = 0.8; // Units moved per frame — adjust if too fast/slow
+
+// getWorldDirection gives us the normalised vector the camera is facing
+const forward = new THREE.Vector3();
+camera.getWorldDirection(forward);
+
+// The right vector is perpendicular to forward and the world up axis (Y).
+// crossVectors computes this perpendicular direction mathematically.
+const right = new THREE.Vector3();
+right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
+if (keys.w) camera.position.addScaledVector(forward,  moveSpeed); // Forward
+if (keys.s) camera.position.addScaledVector(forward, -moveSpeed); // Backward
+if (keys.d) camera.position.addScaledVector(right,    moveSpeed); // Strafe right
+if (keys.a) camera.position.addScaledVector(right,   -moveSpeed); // Strafe left
+if (keys.e) camera.position.y += moveSpeed; // Move up (world Y axis)
+if (keys.q) camera.position.y -= moveSpeed; // Move down (world Y axis)
+
+// Keep OrbitControls target in sync with camera position.
+// Without this, OrbitControls fights against WASD movement
+// because it keeps trying to orbit around the original target point.
+if (keys.w || keys.s || keys.a || keys.d || keys.e || keys.q) {
+    controls.target.addScaledVector(forward,
+        (keys.w ? moveSpeed : 0) - (keys.s ? moveSpeed : 0)
+    );
+}
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
