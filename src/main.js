@@ -38,26 +38,53 @@ controls.dampingFactor = 0.03; // Gives it that cinematic, smooth glide
 controls.maxDistance = 500; // Prevents the user from zooming infinitely into the void
 
 /* ============================================================================
-   COMPONENT 1: THE STARFIELD (Environment Context)
-   ============================================================================
-*/
-// Generate 2000 random points in space to create a convincing background
-const starGeometry = new THREE.BufferGeometry();
-const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
-const starVertices = [];
+COMPONENT 1: THE STARFIELD (Environment Context)
+============================================================================
+Two star layers create a sense of parallax depth:
+  Layer 1 — 3000 small distant stars spread across a wide volume
+  Layer 2 — 300 larger foreground stars in a tighter volume
+The size difference implies distance — closer stars appear bigger.
+Both layers use BufferGeometry for performance (one draw call each).
+============================================================================ */
 
-for (let i = 0; i < 2000; i++) {
-  const x = (Math.random() - 0.5) * 1000;
-  const y = (Math.random() - 0.5) * 1000;
-  const z = (Math.random() - 0.5) * 1000;
-  starVertices.push(x, y, z);
+// Layer 1 — distant starfield
+// Large spread (2000 units), small point size (0.4)
+const distantStarGeo = new THREE.BufferGeometry();
+const distantStarVertices = [];
+for (let i = 0; i < 3000; i++) {
+  distantStarVertices.push(
+    (Math.random() - 0.5) * 2000, // X
+    (Math.random() - 0.5) * 2000, // Y
+    (Math.random() - 0.5) * 2000, // Z
+  );
 }
-starGeometry.setAttribute(
+distantStarGeo.setAttribute(
   "position",
-  new THREE.Float32BufferAttribute(starVertices, 3),
+  new THREE.Float32BufferAttribute(distantStarVertices, 3),
 );
-const stars = new THREE.Points(starGeometry, starMaterial);
-scene.add(stars);
+const distantStarMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.4 });
+const distantStars = new THREE.Points(distantStarGeo, distantStarMat);
+scene.add(distantStars);
+
+// Layer 2 — foreground stars
+// Tighter spread (1000 units), larger point size (1.2)
+// These appear closer and brighter, adding depth to the scene
+const nearStarGeo = new THREE.BufferGeometry();
+const nearStarVertices = [];
+for (let i = 0; i < 300; i++) {
+  nearStarVertices.push(
+    (Math.random() - 0.5) * 1000, // X
+    (Math.random() - 0.5) * 1000, // Y
+    (Math.random() - 0.5) * 1000, // Z
+  );
+}
+nearStarGeo.setAttribute(
+  "position",
+  new THREE.Float32BufferAttribute(nearStarVertices, 3),
+);
+const nearStarMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.2 });
+const nearStars = new THREE.Points(nearStarGeo, nearStarMat);
+scene.add(nearStars);
 
 /* ============================================================================
    COMPONENT 2: THE SPACE STATION (Hierarchical Group)
@@ -815,7 +842,7 @@ const animate = (time) => {
     { radius: 110, inclination: Math.PI / 5, speed: 0.00035 }, // Wide, steeply tilted, slowest
   ];
 
-fleet.forEach((ship, index) => {
+  fleet.forEach((ship, index) => {
     // Get this ship's unique orbital parameters
     const { radius, inclination, speed } = shipOrbits[index];
 

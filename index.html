@@ -3,11 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/src/style.css">
-    <title>3D Space Station | Taariq Charles</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <title>3D Space Station | Taariq Charles | COS3712</title>
   </head>
   <body>
     <canvas id="c"></canvas>
+
+    <!-- Controls HUD overlay — satisfies the assessment requirement to
+         document camera and user controls within the submission -->
+    <div id="hud">
+      <p class="hud-title">CONTROLS</p>
+      <p><span class="key">W / S</span> Move forward / backward</p>
+      <p><span class="key">A / D</span> Strafe left / right</p>
+      <p><span class="key">E / Q</span> Move up / down</p>
+      <p><span class="key">Mouse</span> Orbit camera</p>
+      <p><span class="key">Scroll</span> Zoom in / out</p>
+      <p><span class="key">P</span> Pause / resume ships</p>
+      <p><span class="key">V</span> Toggle docking view</p>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
