@@ -499,129 +499,228 @@ bottom tower is a perfect mirror of the top without duplicating code.
 const commsGroup = new THREE.Group();
 
 const buildTower = (isTop) => {
-    const tower = new THREE.Group();
+  const tower = new THREE.Group();
 
-    // Direction multiplier — +1 for top tower, -1 for bottom tower.
-    // Multiplying all Y positions by dir means the bottom tower is
-    // automatically a vertical mirror of the top.
-    const dir = isTop ? 1 : -1;
+  // Direction multiplier — +1 for top tower, -1 for bottom tower.
+  // Multiplying all Y positions by dir means the bottom tower is
+  // automatically a vertical mirror of the top.
+  const dir = isTop ? 1 : -1;
 
-    // 1. Base mounting plate — wide flat cylinder that sits flush
-    // on the end of the spine, like a bolted flange connection.
-    // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
-    const baseGeo = new THREE.CylinderGeometry(4, 4, 2, 16);
-    const baseSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-    const baseWireMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, wireframe: true });
-    const baseSolid = new THREE.Mesh(baseGeo, baseSolidMat);
-    const baseWire = new THREE.Mesh(baseGeo, baseWireMat);
-    baseWire.scale.set(1.02, 1.02, 1.02);
-    const base = new THREE.Group();
-    base.add(baseSolid);
-    base.add(baseWire);
-    base.position.y = dir * 1; // Sit flush at the spine end
-    tower.add(base);
+  // 1. Base mounting plate — wide flat cylinder that sits flush
+  // on the end of the spine, like a bolted flange connection.
+  // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
+  const baseGeo = new THREE.CylinderGeometry(4, 4, 2, 16);
+  const baseSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const baseWireMat = new THREE.MeshBasicMaterial({
+    color: 0xffcc00,
+    wireframe: true,
+  });
+  const baseSolid = new THREE.Mesh(baseGeo, baseSolidMat);
+  const baseWire = new THREE.Mesh(baseGeo, baseWireMat);
+  baseWire.scale.set(1.02, 1.02, 1.02);
+  const base = new THREE.Group();
+  base.add(baseSolid);
+  base.add(baseWire);
+  base.position.y = dir * 1; // Sit flush at the spine end
+  tower.add(base);
 
-    // 2. Telescoping mast — 3 stacked cylinders of decreasing radius.
-    // This gives the impression of a multi-stage extendable antenna mast.
-    // Each segment is narrower than the one below it.
-    const mastSegments = [
-        { radiusTop: 1.4, radiusBottom: 1.8, height: 12, y: dir * 8  },
-        { radiusTop: 0.9, radiusBottom: 1.2, height: 10, y: dir * 19 },
-        { radiusTop: 0.4, radiusBottom: 0.8, height: 8,  y: dir * 28 },
-    ];
+  // 2. Telescoping mast — 3 stacked cylinders of decreasing radius.
+  // This gives the impression of a multi-stage extendable antenna mast.
+  // Each segment is narrower than the one below it.
+  const mastSegments = [
+    { radiusTop: 1.4, radiusBottom: 1.8, height: 12, y: dir * 8 },
+    { radiusTop: 0.9, radiusBottom: 1.2, height: 10, y: dir * 19 },
+    { radiusTop: 0.4, radiusBottom: 0.8, height: 8, y: dir * 28 },
+  ];
 
-    mastSegments.forEach(({ radiusTop, radiusBottom, height, y }) => {
-        const mastGeo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 10);
-        const mastSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-        const mastWireMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, wireframe: true });
-        const mastSolid = new THREE.Mesh(mastGeo, mastSolidMat);
-        const mastWire = new THREE.Mesh(mastGeo, mastWireMat);
-        mastWire.scale.set(1.02, 1.02, 1.02);
-        const mast = new THREE.Group();
-        mast.add(mastSolid);
-        mast.add(mastWire);
-        mast.position.y = y;
-        tower.add(mast);
+  mastSegments.forEach(({ radiusTop, radiusBottom, height, y }) => {
+    const mastGeo = new THREE.CylinderGeometry(
+      radiusTop,
+      radiusBottom,
+      height,
+      10,
+    );
+    const mastSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const mastWireMat = new THREE.MeshBasicMaterial({
+      color: 0xffcc00,
+      wireframe: true,
     });
+    const mastSolid = new THREE.Mesh(mastGeo, mastSolidMat);
+    const mastWire = new THREE.Mesh(mastGeo, mastWireMat);
+    mastWire.scale.set(1.02, 1.02, 1.02);
+    const mast = new THREE.Group();
+    mast.add(mastSolid);
+    mast.add(mastWire);
+    mast.position.y = y;
+    tower.add(mast);
+  });
 
-    // 3. Parabolic dish — a cone tilted at 45 degrees.
-    // Real station dishes tilt to maintain lock on Earth or satellites.
-    // ConeGeometry(radius, height, radialSegments)
-    const dishGeo = new THREE.ConeGeometry(5, 3, 20);
-    const dishSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
-    const dishWireMat = new THREE.MeshBasicMaterial({ color: 0xffcc00, wireframe: true });
-    const dishSolid = new THREE.Mesh(dishGeo, dishSolidMat);
-    const dishWire = new THREE.Mesh(dishGeo, dishWireMat);
-    dishWire.scale.set(1.02, 1.02, 1.02);
-    const dish = new THREE.Group();
-    dish.add(dishSolid);
-    dish.add(dishWire);
-    dish.position.y = dir * 34;
-    // Tilt the dish outward at 45 degrees — scanning position
-    // The tilt direction flips between top and bottom tower
-    dish.rotation.x = isTop ? Math.PI / 4 : -Math.PI / 4;
-    tower.add(dish);
+  // 3. Parabolic dish — a cone tilted at 45 degrees.
+  // Real station dishes tilt to maintain lock on Earth or satellites.
+  // ConeGeometry(radius, height, radialSegments)
+  const dishGeo = new THREE.ConeGeometry(5, 3, 20);
+  const dishSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const dishWireMat = new THREE.MeshBasicMaterial({
+    color: 0xffcc00,
+    wireframe: true,
+  });
+  const dishSolid = new THREE.Mesh(dishGeo, dishSolidMat);
+  const dishWire = new THREE.Mesh(dishGeo, dishWireMat);
+  dishWire.scale.set(1.02, 1.02, 1.02);
+  const dish = new THREE.Group();
+  dish.add(dishSolid);
+  dish.add(dishWire);
+  dish.position.y = dir * 34;
+  // Tilt the dish outward at 45 degrees — scanning position
+  // The tilt direction flips between top and bottom tower
+  dish.rotation.x = isTop ? Math.PI / 4 : -Math.PI / 4;
+  tower.add(dish);
 
-    // 4. Beacon tip — small sphere at the very top of the mast.
-    // Represents the navigational beacon light on real stations.
-    // Coloured cyan to match the primary structural colour language.
-    const beaconGeo = new THREE.SphereGeometry(0.8, 8, 8);
-    const beaconMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
-    const beacon = new THREE.Mesh(beaconGeo, beaconMat);
-    beacon.position.y = dir * 38; // Very tip of the mast
-    tower.add(beacon);
+  // 4. Beacon tip — small sphere at the very top of the mast.
+  // Represents the navigational beacon light on real stations.
+  // Coloured cyan to match the primary structural colour language.
+  const beaconGeo = new THREE.SphereGeometry(0.8, 8, 8);
+  const beaconMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+  const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+  beacon.position.y = dir * 38; // Very tip of the mast
+  tower.add(beacon);
 
-    // Position the whole tower at the end of the spine.
-    // The spine is 120 units tall so its tips are at Y = +60 and Y = -60
-    tower.position.y = dir * 60;
+  // Position the whole tower at the end of the spine.
+  // The spine is 120 units tall so its tips are at Y = +60 and Y = -60
+  tower.position.y = dir * 60;
 
-    return tower;
+  return tower;
 };
 
-commsGroup.add(buildTower(true));  // Top tower
+commsGroup.add(buildTower(true)); // Top tower
 commsGroup.add(buildTower(false)); // Bottom tower — automatically mirrored
 spaceStation.add(commsGroup);
 
 /* ============================================================================
-COMPONENT 6: THE FLEET (Dynamic Spacecraft)
+COMPONENT 7: THE FLEET (minimum 4 spacecraft required)
 ============================================================================
-*/
+Four spacecraft orbit the station on independent paths.
+
+IMPORTANT: Ships are added to the scene directly, NOT to spaceStation.
+If they were added to spaceStation they would inherit the station's
+rotation and their orbital paths would be completely wrong.
+
+Each ship is built from 5 parts assembled as a THREE.Group:
+1. Fuselage     — the main body cylinder
+2. Nose         — flattened sphere at the front
+3. Wings        — flat box geometry left and right
+4. Engine pods  — cylinders mounted at the rear of each wing
+5. Engine glow  — stretched spheres simulating exhaust flame
+============================================================================ */
+
 for (let i = 0; i < 4; i++) {
   const shipGroup = new THREE.Group();
 
-  // 1. Fuselage
-  const fuseGeo = new THREE.CylinderGeometry(1, 1, 5, 16);
-  const fuseMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+  // 1. Fuselage — the main body of the craft
+  // Laid flat on the Z axis so the ship points forward (along -Z)
+  const fuseGeo = new THREE.CylinderGeometry(1, 1.4, 10, 12);
+  const fuseSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
   const fuseWireMat = new THREE.MeshBasicMaterial({
-    color: 0xff4d00,
+    color: 0xff6600,
     wireframe: true,
   });
+  const fuseSolid = new THREE.Mesh(fuseGeo, fuseSolidMat);
   const fuseWire = new THREE.Mesh(fuseGeo, fuseWireMat);
-  fuseWire.scale.set(1.05, 1.05, 1.05);
-  const fuselage = new THREE.Mesh(fuseGeo, fuseMat);
+  fuseWire.scale.set(1.02, 1.02, 1.02);
+  const fuselage = new THREE.Group();
+  fuselage.add(fuseSolid);
   fuselage.add(fuseWire);
-  fuselage.rotation.x = Math.PI / 2; // Lay the cylinder flat
-
-  // 2. Nose cone
-  const noseGeo = new THREE.ConeGeometry(1, 3, 16);
-  const noseMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const nose = new THREE.Mesh(noseGeo, noseMat);
-  nose.position.z = -4; // Push to the front (Negative Z is 'forward' in Three.js)
-  nose.rotation.x = -Math.PI / 2; // Point forward
-
-  // 3. Engine Thruster Glow
-  const engineGeo = new THREE.SphereGeometry(0.8, 8, 8);
-  const engineMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff }); // cyan energy
-  const engine = new THREE.Mesh(engineGeo, engineMat);
-  engine.position.z = 2.5; // Push to the back
-  engine.scale.z = 2.5; // Stretch it backward to look like a propulsion flame
-
+  fuselage.rotation.x = Math.PI / 2; // Lay flat — nose points along -Z
   shipGroup.add(fuselage);
-  shipGroup.add(nose);
-  shipGroup.add(engine);
 
-  // add the ships directly to the scene, not the spaceStation.
-  // If we added them to the station, they would inherit the station's rotation, ruining their independent orbit.
+  // 2. Nose — a slightly flattened sphere at the front of the fuselage
+  // scale.y = 0.6 squashes it vertically for a more aerodynamic shape
+  // Translation: pushed to the front tip of the fuselage along -Z
+  const noseGeo = new THREE.SphereGeometry(1.1, 12, 8);
+  const noseSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const noseWireMat = new THREE.MeshBasicMaterial({
+    color: 0x00f3ff,
+    wireframe: true,
+  });
+  const noseSolid = new THREE.Mesh(noseGeo, noseSolidMat);
+  const noseWire = new THREE.Mesh(noseGeo, noseWireMat);
+  noseWire.scale.set(1.02, 1.02, 1.02);
+  const nose = new THREE.Group();
+  nose.add(noseSolid);
+  nose.add(noseWire);
+  nose.position.z = -5.5; // Front tip of the fuselage
+  nose.scale.y = 0.6; // Flatten slightly — aerodynamic profile
+  shipGroup.add(nose);
+
+  // 3. Delta wings — wide flat boxes extending left and right
+  // BoxGeometry(width, height, depth)
+  // Very thin on Y (0.3) to represent flat wing surfaces
+  // Scaling demonstrates the use of non-uniform scaling
+  const wingGeo = new THREE.BoxGeometry(16, 0.3, 7);
+  const wingSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const wingWireMat = new THREE.MeshBasicMaterial({
+    color: 0xff6600,
+    wireframe: true,
+  });
+  const wingSolid = new THREE.Mesh(wingGeo, wingSolidMat);
+  const wingWire = new THREE.Mesh(wingGeo, wingWireMat);
+  wingWire.scale.set(1.01, 1.01, 1.01);
+  const wings = new THREE.Group();
+  wings.add(wingSolid);
+  wings.add(wingWire);
+  wings.position.z = 1; // Slightly toward the rear of the fuselage
+  shipGroup.add(wings);
+
+  // 4. Engine pods — two cylinders mounted at the rear wing tips
+  // Rotated to point along Z axis (same direction as the fuselage)
+  const podGeo = new THREE.CylinderGeometry(0.5, 0.7, 5, 10);
+  const podSolidMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+  const podWireMat = new THREE.MeshBasicMaterial({
+    color: 0xff6600,
+    wireframe: true,
+  });
+
+  // Left engine pod
+  const leftPodSolid = new THREE.Mesh(podGeo, podSolidMat);
+  const leftPodWire = new THREE.Mesh(podGeo, podWireMat);
+  leftPodWire.scale.set(1.02, 1.02, 1.02);
+  const leftPod = new THREE.Group();
+  leftPod.add(leftPodSolid);
+  leftPod.add(leftPodWire);
+  leftPod.rotation.x = Math.PI / 2; // Point along Z axis
+  leftPod.position.set(-6, 0, 2); // Left wing tip, toward the rear
+  shipGroup.add(leftPod);
+
+  // Right engine pod — mirror of the left
+  const rightPodSolid = new THREE.Mesh(podGeo, podSolidMat);
+  const rightPodWire = new THREE.Mesh(podGeo, podWireMat);
+  rightPodWire.scale.set(1.02, 1.02, 1.02);
+  const rightPod = new THREE.Group();
+  rightPod.add(rightPodSolid);
+  rightPod.add(rightPodWire);
+  rightPod.rotation.x = Math.PI / 2;
+  rightPod.position.set(6, 0, 2); // Right wing tip, toward the rear
+  shipGroup.add(rightPod);
+
+  // 5. Engine glow — stretched spheres behind each engine pod
+  // scale.z stretches the sphere backward to look like an exhaust flame
+  // MeshBasicMaterial with cyan colour implies energy/heat without lighting
+  const glowGeo = new THREE.SphereGeometry(0.5, 8, 8);
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+
+  // Left engine glow
+  const leftGlow = new THREE.Mesh(glowGeo, glowMat);
+  leftGlow.scale.set(1, 1, 4); // Stretch into flame shape along Z
+  leftGlow.position.set(-6, 0, 5); // Behind the left engine pod
+  shipGroup.add(leftGlow);
+
+  // Right engine glow
+  const rightGlow = new THREE.Mesh(glowGeo, glowMat);
+  rightGlow.scale.set(1, 1, 4);
+  rightGlow.position.set(6, 0, 5); // Behind the right engine pod
+  shipGroup.add(rightGlow);
+
+  // Add to scene (not spaceStation) and register in fleet array
   scene.add(shipGroup);
   fleet.push(shipGroup);
 }
@@ -646,116 +745,136 @@ window.addEventListener("keydown", (e) => {
     isOrbiting = !isOrbiting;
   }
 
-if (e.key.toLowerCase() === "v") {
+  if (e.key.toLowerCase() === "v") {
     isExternalView = !isExternalView;
 
     if (isExternalView) {
-        // External view — pull back to see the full station
-        // Positioned above and behind for a good overview angle
-        controls.enabled = true;
-        camera.position.set(0, 30, 150);
-        controls.target.set(0, 0, 0);
-        controls.update();
+      // External view — pull back to see the full station
+      // Positioned above and behind for a good overview angle
+      controls.enabled = true;
+      camera.position.set(0, 30, 150);
+      controls.target.set(0, 0, 0);
+      controls.update();
     } else {
-        // First-person docking view — positioned outside the upper
-        // port habitat module, looking inward toward the station core.
-        // The upper port module is at Y=30, X=28 (outer end of habitat).
-        // We place the camera further out at X=55 so the module is
-        // visible in front of us as we approach.
-        camera.position.set(55, 30, 0);
+      // First-person docking view — positioned outside the upper
+      // port habitat module, looking inward toward the station core.
+      // The upper port module is at Y=30, X=28 (outer end of habitat).
+      // We place the camera further out at X=55 so the module is
+      // visible in front of us as we approach.
+      camera.position.set(55, 30, 0);
 
-        // Look toward the station core (0, 0, 0) from our position.
-        // This gives a convincing "on approach to dock" perspective —
-        // you can see the habitat module and the station behind it.
-        controls.target.set(0, 30, 0);
-        controls.update();
+      // Look toward the station core (0, 0, 0) from our position.
+      // This gives a convincing "on approach to dock" perspective —
+      // you can see the habitat module and the station behind it.
+      controls.target.set(0, 30, 0);
+      controls.update();
     }
-}
+  }
 
   // Free-roam movement — record which keys are held down
-    // We track keydown and keyup separately so holding a key
-    // moves the camera continuously, not just on the first press
-    if (e.key.toLowerCase() === "w") keys.w = true;
-    if (e.key.toLowerCase() === "s") keys.s = true;
-    if (e.key.toLowerCase() === "a") keys.a = true;
-    if (e.key.toLowerCase() === "d") keys.d = true;
-    if (e.key.toLowerCase() === "q") keys.q = true; // Move down
-    if (e.key.toLowerCase() === "e") keys.e = true; // Move up
+  // We track keydown and keyup separately so holding a key
+  // moves the camera continuously, not just on the first press
+  if (e.key.toLowerCase() === "w") keys.w = true;
+  if (e.key.toLowerCase() === "s") keys.s = true;
+  if (e.key.toLowerCase() === "a") keys.a = true;
+  if (e.key.toLowerCase() === "d") keys.d = true;
+  if (e.key.toLowerCase() === "q") keys.q = true; // Move down
+  if (e.key.toLowerCase() === "e") keys.e = true; // Move up
 });
 
 // When a key is released, stop moving in that direction
 window.addEventListener("keyup", (e) => {
-    if (e.key.toLowerCase() === "w") keys.w = false;
-    if (e.key.toLowerCase() === "s") keys.s = false;
-    if (e.key.toLowerCase() === "a") keys.a = false;
-    if (e.key.toLowerCase() === "d") keys.d = false;
-    if (e.key.toLowerCase() === "q") keys.q = false;
-    if (e.key.toLowerCase() === "e") keys.e = false;
+  if (e.key.toLowerCase() === "w") keys.w = false;
+  if (e.key.toLowerCase() === "s") keys.s = false;
+  if (e.key.toLowerCase() === "a") keys.a = false;
+  if (e.key.toLowerCase() === "d") keys.d = false;
+  if (e.key.toLowerCase() === "q") keys.q = false;
+  if (e.key.toLowerCase() === "e") keys.e = false;
 });
 
 const animate = (time) => {
   // Only increment time if teh game is not paused (Fulfills animation control criteria)
   if (isOrbiting) {
     currentOrbitTime += 16.6;
-    // Slowly rotate the massive station on multiple axes
-    spaceStation.rotation.y += 0.002;
-    spaceStation.rotation.x += 0.0001;
-    spaceStation.rotation.z += 0.0001;
   }
 
-  // Solar panels rotate independently on Y — implies sun-tracking
-  // This rotation is relative to the station, not the world
+  spaceStation.rotation.y += 0.002;
+  spaceStation.rotation.x += 0.0001;
+  spaceStation.rotation.z += 0.0001;
   solarGroup.rotation.y += 0.005;
 
   // Orbital physics for the fleet
-  const orbitSpeed = 0.0005;
-  const orbitRadius = 70; // Fly in a wide perimeter around the solar arrays
+  // Each ship has unique orbital parameters — radius, inclination, and speed.
+  // This creates a realistic multi-orbit environment rather than four ships
+  // circling on the same flat plane like a carousel.
 
-  fleet.forEach((ship, index) => {
-    // Space them out evenly (360 degrees / 4 ships)
+  const shipOrbits = [
+    { radius: 80, inclination: 0, speed: 0.0005 }, // Flat equatorial orbit
+    { radius: 95, inclination: Math.PI / 8, speed: 0.0004 }, // Slightly tilted, slower
+    { radius: 70, inclination: -Math.PI / 6, speed: 0.0006 }, // Tilted other way, faster
+    { radius: 110, inclination: Math.PI / 5, speed: 0.00035 }, // Wide, steeply tilted, slowest
+  ];
+
+fleet.forEach((ship, index) => {
+    // Get this ship's unique orbital parameters
+    const { radius, inclination, speed } = shipOrbits[index];
+
+    // Space the 4 ships evenly around their orbits at the start
     const angleOffset = (index / fleet.length) * Math.PI * 2;
-    const currentAngle = currentOrbitTime * orbitSpeed + angleOffset;
+    const currentAngle = currentOrbitTime * speed + angleOffset;
 
-    // Apply Trigonometric Translation
-    ship.position.x = Math.cos(currentAngle) * orbitRadius;
-    ship.position.z = Math.sin(currentAngle) * orbitRadius;
+    // --- TRANSLATION: 3D orbital position ---
+    // A flat circular orbit only uses X and Z.
+    // Adding inclination lifts the orbit out of the flat plane:
+    //   X stays as cos(angle) * radius
+    //   Z becomes sin(angle) * cos(inclination) — compressed by the tilt
+    //   Y becomes sin(angle) * sin(inclination) — the vertical lift from tilt
+    ship.position.x = Math.cos(currentAngle) * radius;
+    ship.position.z = Math.sin(currentAngle) * Math.cos(inclination) * radius;
+    ship.position.y = Math.sin(currentAngle) * Math.sin(inclination) * radius;
 
-    // Make the ship face its flight path
-    // A circle's tangent is exactly 90 degrees (PI/2) ahead of its angle
-    ship.rotation.y = -currentAngle;
+    // --- ROTATION: look-behind method ---
+    // Nose points along negative Z due to fuselage pre-rotation.
+    // We look at the previous position so the nose leads correctly.
+    const lookBehindAngle = currentAngle - 0.01;
+    const prevX = Math.cos(lookBehindAngle) * radius;
+    const prevZ = Math.sin(lookBehindAngle) * Math.cos(inclination) * radius;
+    const prevY = Math.sin(lookBehindAngle) * Math.sin(inclination) * radius;
+    ship.lookAt(new THREE.Vector3(prevX, prevY, prevZ));
   });
 
   // --- FREE-ROAM CAMERA MOVEMENT ---
-// We move the camera relative to its own orientation, not world axes.
-// This means W always moves toward where you are looking,
-// A/D always strafes left/right relative to your view direction.
+  // We move the camera relative to its own orientation, not world axes.
+  // This means W always moves toward where you are looking,
+  // A/D always strafes left/right relative to your view direction.
 
-const moveSpeed = 0.8; // Units moved per frame — adjust if too fast/slow
+  const moveSpeed = 0.8; // Units moved per frame — adjust if too fast/slow
 
-// getWorldDirection gives us the normalised vector the camera is facing
-const forward = new THREE.Vector3();
-camera.getWorldDirection(forward);
+  // getWorldDirection gives us the normalised vector the camera is facing
+  const forward = new THREE.Vector3();
+  camera.getWorldDirection(forward);
 
-// The right vector is perpendicular to forward and the world up axis (Y).
-// crossVectors computes this perpendicular direction mathematically.
-const right = new THREE.Vector3();
-right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+  // The right vector is perpendicular to forward and the world up axis (Y).
+  // crossVectors computes this perpendicular direction mathematically.
+  const right = new THREE.Vector3();
+  right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
-if (keys.w) camera.position.addScaledVector(forward,  moveSpeed); // Forward
-if (keys.s) camera.position.addScaledVector(forward, -moveSpeed); // Backward
-if (keys.d) camera.position.addScaledVector(right,    moveSpeed); // Strafe right
-if (keys.a) camera.position.addScaledVector(right,   -moveSpeed); // Strafe left
-if (keys.e) camera.position.y += moveSpeed; // Move up (world Y axis)
-if (keys.q) camera.position.y -= moveSpeed; // Move down (world Y axis)
+  if (keys.w) camera.position.addScaledVector(forward, moveSpeed); // Forward
+  if (keys.s) camera.position.addScaledVector(forward, -moveSpeed); // Backward
+  if (keys.d) camera.position.addScaledVector(right, moveSpeed); // Strafe right
+  if (keys.a) camera.position.addScaledVector(right, -moveSpeed); // Strafe left
+  if (keys.e) camera.position.y += moveSpeed; // Move up (world Y axis)
+  if (keys.q) camera.position.y -= moveSpeed; // Move down (world Y axis)
 
-// Keep OrbitControls target in sync with camera position.
-// Without this, OrbitControls fights against WASD movement
-// because it keeps trying to orbit around the original target point.
-if (keys.w || keys.s || keys.a || keys.d || keys.e || keys.q) {
-    controls.target.addScaledVector(forward,
-        (keys.w ? moveSpeed : 0) - (keys.s ? moveSpeed : 0)
+  // Keep OrbitControls target in sync with camera position.
+  // Without this, OrbitControls fights against WASD movement
+  // because it keeps trying to orbit around the original target point.
+  if (keys.w || keys.s || keys.a || keys.d || keys.e || keys.q) {
+    controls.target.addScaledVector(
+      forward,
+      (keys.w ? moveSpeed : 0) - (keys.s ? moveSpeed : 0),
     );
-}
+  }
   controls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
