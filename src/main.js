@@ -87,9 +87,20 @@ const nearStars = new THREE.Points(nearStarGeo, nearStarMat);
 scene.add(nearStars);
 
 /* ============================================================================
-   COMPONENT 2: THE SPACE STATION (Hierarchical Group)
-   ============================================================================
-*/
+COMPONENT 2: THE COMMAND SPHERE (Central Core)
+============================================================================
+The command sphere is the pressurised control centre of the station,
+sitting at the midpoint of the spine (Y=0). It is the visual centrepiece
+of the station and the reference point for all other components.
+
+It consists of:
+1. A solid dark base mesh — occludes geometry behind it for visual depth
+2. A cyan wireframe overlay — scaled 1% larger to prevent Z-fighting
+3. Two junction collars — tapered cylinders where the sphere meets the
+   spine above and below, suggesting it is physically bolted onto the
+   truss backbone rather than floating around it.
+
+============================================================================ */
 // This is the parent object for all station components.
 // Rotating this group will rotate the entire station, fulfilling the hierarchy requirement.
 const spaceStation = new THREE.Group();
@@ -115,8 +126,6 @@ coreWire.scale.set(1.01, 1.01, 1.01);
 // Assemble the Core
 coreGroup.add(coreSolid);
 coreGroup.add(coreWire);
-
-spaceStation.add(coreGroup);
 
 // 3. Junction collars — where the sphere meets the spine above and below.
 // These tapered cylinders suggest the sphere is physically bolted onto
@@ -148,6 +157,8 @@ bottomCollar.add(bottomCollarSolid);
 bottomCollar.add(bottomCollarWire);
 bottomCollar.position.y = -15; // Mirror position at the bottom
 coreGroup.add(bottomCollar);
+
+spaceStation.add(coreGroup);
 
 /* ============================================================================
 COMPONENT 3: THE CENTRAL SPINE
@@ -756,7 +767,8 @@ for (let i = 0; i < 4; i++) {
     EVENT LISTENERS & ANIMATION LOOP
 ============================================================================
 */
-
+// Keeps the camera and renderer in sync when the browser window is resized.
+// Without this the scene would stretch or compress on resize.
 window.addEventListener("resize", () => {
   // 1. Update camera aspect ratio
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -778,7 +790,7 @@ window.addEventListener("keydown", (e) => {
     if (isExternalView) {
       // External view — pull back to see the full station
       // Positioned above and behind for a good overview angle
-      controls.enabled = true;
+      controls.enabled = true; // Re-enable orbit controls — disabled during docking view
       camera.position.set(0, 30, 150);
       controls.target.set(0, 0, 0);
       controls.update();
@@ -819,28 +831,26 @@ window.addEventListener("keyup", (e) => {
   if (e.key.toLowerCase() === "e") keys.e = false;
 });
 
-const animate = (time) => {
-  // Only increment time if teh game is not paused (Fulfills animation control criteria)
-  if (isOrbiting) {
-    currentOrbitTime += 16.6;
-  }
-
-  spaceStation.rotation.y += 0.002;
-  spaceStation.rotation.x += 0.0001;
-  spaceStation.rotation.z += 0.0001;
-  solarGroup.rotation.y += 0.005;
-
   // Orbital physics for the fleet
   // Each ship has unique orbital parameters — radius, inclination, and speed.
   // This creates a realistic multi-orbit environment rather than four ships
   // circling on the same flat plane like a carousel.
-
   const shipOrbits = [
     { radius: 80, inclination: 0, speed: 0.0005 }, // Flat equatorial orbit
     { radius: 95, inclination: Math.PI / 8, speed: 0.0004 }, // Slightly tilted, slower
     { radius: 70, inclination: -Math.PI / 6, speed: 0.0006 }, // Tilted other way, faster
     { radius: 110, inclination: Math.PI / 5, speed: 0.00035 }, // Wide, steeply tilted, slowest
   ];
+
+const animate = (time) => {
+  // Only increment time if the game is not paused (Fulfills animation control criteria)
+  if (isOrbiting) {
+    currentOrbitTime += 16.6;
+    spaceStation.rotation.y += 0.002;
+    spaceStation.rotation.x += 0.0001;
+    spaceStation.rotation.z += 0.0001;
+    solarGroup.rotation.y += 0.005;
+  }
 
   fleet.forEach((ship, index) => {
     // Get this ship's unique orbital parameters
