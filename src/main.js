@@ -646,20 +646,31 @@ window.addEventListener("keydown", (e) => {
     isOrbiting = !isOrbiting;
   }
 
-  if (e.key.toLocaleLowerCase() === "v") {
+if (e.key.toLowerCase() === "v") {
     isExternalView = !isExternalView;
+
     if (isExternalView) {
-      // External View: Pull back to see the whole stationS
-      camera.position.set(0, 30, 150);
-      controls.target.set(0, 0, 0);
+        // External view — pull back to see the full station
+        // Positioned above and behind for a good overview angle
+        controls.enabled = true;
+        camera.position.set(0, 30, 150);
+        controls.target.set(0, 0, 0);
+        controls.update();
     } else {
-      // First-Person View: Teleport inside the first docking ring
-      // The ring is at x = 22, so we place the camera at x = 20
-      camera.position.set(20, 0, 0);
-      // Look straight out into the starfield (towards positive X)
-      controls.target.set(20.1, 0, 0);
+        // First-person docking view — positioned outside the upper
+        // port habitat module, looking inward toward the station core.
+        // The upper port module is at Y=30, X=28 (outer end of habitat).
+        // We place the camera further out at X=55 so the module is
+        // visible in front of us as we approach.
+        camera.position.set(55, 30, 0);
+
+        // Look toward the station core (0, 0, 0) from our position.
+        // This gives a convincing "on approach to dock" perspective —
+        // you can see the habitat module and the station behind it.
+        controls.target.set(0, 30, 0);
+        controls.update();
     }
-  }
+}
 
   // Free-roam movement — record which keys are held down
     // We track keydown and keyup separately so holding a key
