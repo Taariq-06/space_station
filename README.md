@@ -61,58 +61,6 @@ Space Station), users can freely explore a simulated space station from any angl
   mimicking the way the human eye perceives depth and distance. Declared and 
   configured before any scene components are built.
 
----
-
-## 🏗️ Station Components
-
-The station is built entirely from Three.js geometry primitives, structured 
-around a central vertical spine — inspired by the engineering logic of the 
-real ISS.
-
-**Command Sphere**
-The central core of the station. A sphere sits at the midpoint of the spine, 
-representing the pressurised command module. Two tapered junction collars above 
-and below it suggest it is physically bolted onto the truss backbone.
-
-**Central Spine**
-The structural backbone of the entire station. A vertical truss cylinder runs 
-the full height of the station along the Y-axis. Every major component attaches 
-to it. Seven evenly spaced collar rings along its length suggest segmented truss 
-construction, inspired by the Integrated Truss Structure (ITS) of the ISS.
-
-**Habitat & Docking Modules (×6)**
-Six pressurised habitat modules extend horizontally from the spine — three on 
-the port side and three on the starboard side, staggered at three heights. 
-Each module consists of:
-- A connecting tunnel from the spine to the module
-- A main habitat cylinder (the pressurised volume)
-- Two end caps (flat discs) — the docking interfaces
-
-**Solar Array Arms (×4)**
-Four solar array arms are mounted at the upper and lower portions of the spine, 
-two on each side (port and starboard), alternating like the ISS arrays. 
-Each arm consists of:
-- A horizontal boom extending from the spine
-- Cross-brace rings along the boom — suggesting truss construction
-- Two photovoltaic panels (fore and aft of the boom)
-- Mounting brackets connecting the panels to the boom
-
-**Communication Towers (×2)**
-Two communication towers sit at the very top and bottom ends of the spine. 
-Each tower consists of:
-- A base mounting plate
-- A three-segment telescoping mast of decreasing radius
-- A parabolic dish tilted at 45° — scanning position
-- A cyan beacon tip at the very top
-
-Both towers are built from a single `buildTower` function, using a direction 
-multiplier to automatically mirror the bottom tower from the top.
-
-**Spacecraft Fleet (×4)**
-Four spacecraft orbit the station on independent paths, each with a unique 
-radius, inclination angle, and speed. Each ship is built from a fuselage, 
-a flattened nose, delta wings, two engine pods, and twin engine glow exhausts.
-
 ### Implementation Requirements
 
 #### 1. Space Station Structure
@@ -198,6 +146,58 @@ a flattened nose, delta wings, two engine pods, and twin engine glow exhausts.
   OrbitControls damping is enabled with a factor of 0.03, giving the camera a 
   cinematic glide after mouse release. WASD movement uses per-frame increments 
   at a consistent speed of 0.8 units per frame.
+
+---
+
+## 🏗️ Station Components
+
+The station is built entirely from Three.js geometry primitives, structured 
+around a central vertical spine — inspired by the engineering logic of the 
+real ISS.
+
+**Command Sphere**
+The central core of the station. A sphere sits at the midpoint of the spine, 
+representing the pressurised command module. Two tapered junction collars above 
+and below it suggest it is physically bolted onto the truss backbone.
+
+**Central Spine**
+The structural backbone of the entire station. A vertical truss cylinder runs 
+the full height of the station along the Y-axis. Every major component attaches 
+to it. Seven evenly spaced collar rings along its length suggest segmented truss 
+construction, inspired by the Integrated Truss Structure (ITS) of the ISS.
+
+**Habitat & Docking Modules (×6)**
+Six pressurised habitat modules extend horizontally from the spine — three on 
+the port side and three on the starboard side, staggered at three heights. 
+Each module consists of:
+- A connecting tunnel from the spine to the module
+- A main habitat cylinder (the pressurised volume)
+- Two end caps (flat discs) — the docking interfaces
+
+**Solar Array Arms (×4)**
+Four solar array arms are mounted at the upper and lower portions of the spine, 
+two on each side (port and starboard), alternating like the ISS arrays. 
+Each arm consists of:
+- A horizontal boom extending from the spine
+- Cross-brace rings along the boom — suggesting truss construction
+- Two photovoltaic panels (fore and aft of the boom)
+- Mounting brackets connecting the panels to the boom
+
+**Communication Towers (×2)**
+Two communication towers sit at the very top and bottom ends of the spine. 
+Each tower consists of:
+- A base mounting plate
+- A three-segment telescoping mast of decreasing radius
+- A parabolic dish tilted at 45° — scanning position
+- A cyan beacon tip at the very top
+
+Both towers are built from a single `buildTower` function, using a direction 
+multiplier to automatically mirror the bottom tower from the top.
+
+**Spacecraft Fleet (×4)**
+Four spacecraft orbit the station on independent paths, each with a unique 
+radius, inclination angle, and speed. Each ship is built from a fuselage, 
+a flattened nose, delta wings, two engine pods, and twin engine glow exhausts.
 
 ## ⚠️ Known Limitations
 
