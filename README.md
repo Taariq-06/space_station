@@ -8,7 +8,11 @@ using the Three.js library for 3D rendering. Inspired by the ISS (International
 Space Station), users can freely explore a simulated space station from any angle 
 — orbiting, zooming, and navigating through the scene in real time.
 
-![Video Demonstration](./screenshots/Live%20view.mp4)
+
+
+https://github.com/user-attachments/assets/7d6d2d82-ab1a-460e-9bef-c7e34ef26221
+
+
 
 ## 🚀 Tech Stack
 * **Language:** JavaScript (ES6+)
