@@ -8,6 +8,8 @@ using the Three.js library for 3D rendering. Inspired by the ISS (International
 Space Station), users can freely explore a simulated space station from any angle 
 — orbiting, zooming, and navigating through the scene in real time.
 
+![Video Demonstration](./screenshots/demonstration.mp4)
+
 ## 🚀 Tech Stack
 * **Language:** JavaScript (ES6+)
 * **3D Library:** [Three.js](https://threejs.org/)
@@ -155,16 +157,21 @@ The station is built entirely from Three.js geometry primitives, structured
 around a central vertical spine — inspired by the engineering logic of the 
 real ISS.
 
+![Full Station Overview](./screenshots/01_overview.png)
+
 **Command Sphere**
 The central core of the station. A sphere sits at the midpoint of the spine, 
 representing the pressurised command module. Two tapered junction collars above 
 and below it suggest it is physically bolted onto the truss backbone.
+![Command Sphere](./screenshots/02_command_sphere.png)
 
 **Central Spine**
 The structural backbone of the entire station. A vertical truss cylinder runs 
 the full height of the station along the Y-axis. Every major component attaches 
 to it. Seven evenly spaced collar rings along its length suggest segmented truss 
 construction, inspired by the Integrated Truss Structure (ITS) of the ISS.
+
+![Central Spine](./screenshots/03_central_spine.png)
 
 **Habitat & Docking Modules (×6)**
 Six pressurised habitat modules extend horizontally from the spine — three on 
@@ -174,6 +181,10 @@ Each module consists of:
 - A main habitat cylinder (the pressurised volume)
 - Two end caps (flat discs) — the docking interfaces
 
+![Habitat Modules](./screenshots/4.1_habitat_module.png)
+
+![Habitat Modules](./screenshots/4.2_habitat_module_constructed.png)
+
 **Solar Array Arms (×4)**
 Four solar array arms are mounted at the upper and lower portions of the spine, 
 two on each side (port and starboard), alternating like the ISS arrays. 
@@ -182,6 +193,10 @@ Each arm consists of:
 - Cross-brace rings along the boom — suggesting truss construction
 - Two photovoltaic panels (fore and aft of the boom)
 - Mounting brackets connecting the panels to the boom
+
+![Solar Arrays](./screenshots/5.1_solar_arrays_constructed.png)
+
+![Solar Arrays](./screenshots/5.2_solar_arrays_constructed.png)
 
 **Communication Towers (×2)**
 Two communication towers sit at the very top and bottom ends of the spine. 
@@ -194,10 +209,16 @@ Each tower consists of:
 Both towers are built from a single `buildTower` function, using a direction 
 multiplier to automatically mirror the bottom tower from the top.
 
+![Comms Tower](./screenshots/06_comms_tower.png)
+
 **Spacecraft Fleet (×4)**
 Four spacecraft orbit the station on independent paths, each with a unique 
 radius, inclination angle, and speed. Each ship is built from a fuselage, 
 a flattened nose, delta wings, two engine pods, and twin engine glow exhausts.
+
+![Spacecraft](./screenshots/07_space_craft.png)
+
+![Spacecraft Fleet](./screenshots/09_space_craft_fleet.png)
 
 ## ⚠️ Known Limitations
 
