@@ -21,36 +21,20 @@ export function createStation(scene) {
     const spaceStation = new THREE.Group();
     scene.add(spaceStation);
 
-    /* -------------------------------------------------------------------------
-    SHARED MATERIAL HELPERS
-    Every component uses a solid dark mesh with a scaled wireframe overlay.
-    Defining these helpers here avoids repeating the same two lines everywhere.
-    ------------------------------------------------------------------------- */
+    // Single lit mesh - no wirefram overlay
+    const buildMesh = (geo, material) => new THREE.Mesh(geo, material);
 
-    // Returns a solid dark mesh material — occludes geometry behind it
-    const solid = () => new THREE.MeshBasicMaterial({ color: 0x050505 });
+    //Flat shading - one colour per face (habitat/cargo modules)
+    const flatMat = (color) => new THREE.MeshPhongMaterial({ color, flatShading: true });
 
-    // Returns a wireframe material in the given hex colour
-    const wire = (hex) => new THREE.MeshBasicMaterial({ color: hex, wireframe: true });
+    // Gourad shading - per-vertex lighting (structural elements)
+    const gouraudMat = (color) => new THREE.MeshLambertMaterial({ color });
 
-    /**
-     * Builds a composite group: solid mesh + scaled wireframe overlay.
-     * The wireframe is scaled up slightly to sit on the surface without
-     * Z-fighting (flickering caused by two surfaces sharing the same depth).
-     *
-     * @param {THREE.BufferGeometry} geo - Shared geometry
-     * @param {number} hex - Wireframe colour
-     * @param {number} [scale=1.01] - Wireframe scale factor
-     * @returns {THREE.Group}
-     */
-    const buildMesh = (geo, hex, scale = 1.01) => {
-        const group = new THREE.Group();
-        const solidMesh = new THREE.Mesh(geo, solid());
-        const wireMesh  = new THREE.Mesh(geo, wire(hex));
-        wireMesh.scale.setScalar(scale); // Uniform scale on all 3 axes
-        group.add(solidMesh, wireMesh);
-        return group;
-    };
+    // Phong shading - per-fragment with specular (metallic core)
+    const phongMat = (color, shininess = 80) => new THREE.MeshPhongMaterial({ color, shininess});
+    
+
+
 
     /* -------------------------------------------------------------------------
     COMPONENT 1 — COMMAND SPHERE
@@ -62,17 +46,17 @@ export function createStation(scene) {
 
     // Main sphere — the visual centrepiece of the station
     const sphereGeo = new THREE.SphereGeometry(16, 32, 16);
-    coreGroup.add(buildMesh(sphereGeo, 0x00f3ff));
+    coreGroup.add(buildMesh(sphereGeo, phongMat(0x8899aa, 120)));
 
     // Junction collars — tapered cylinders (radiusTop < radiusBottom = taper)
     // Placed above and below the sphere where it meets the spine
     const collarGeo = new THREE.CylinderGeometry(3, 6, 6, 16);
 
-    const topCollar = buildMesh(collarGeo, 0x00f3ff);
+    const topCollar = buildMesh(collarGeo, gouraudMat(0x556677));
     topCollar.position.y = 15; // Top edge of the sphere
     coreGroup.add(topCollar);
 
-    const bottomCollar = buildMesh(collarGeo, 0x00f3ff);
+    const bottomCollar = buildMesh(collarGeo, gouraudMat(0x556677));
     bottomCollar.position.y = -15; // Mirror at the bottom
     coreGroup.add(bottomCollar);
 
@@ -89,12 +73,12 @@ export function createStation(scene) {
 
     // Main truss cylinder — tall and thin along the Y axis
     const spineGeo = new THREE.CylinderGeometry(0.8, 0.8, 120, 12);
-    spineGroup.add(buildMesh(spineGeo, 0x00f3ff));
+    spineGroup.add(buildMesh(spineGeo, gouraudMat(0x556677)));
 
     // Collar rings spaced evenly along the spine — suggest segmented truss construction
     for (let i = -3; i <= 3; i++) {
         const ringGeo = new THREE.TorusGeometry(2.2, 0.3, 8, 24);
-        const ring = buildMesh(ringGeo, 0x00f3ff);
+        const ring = buildMesh(ringGeo, gouraudMat(0x556677));
         ring.rotation.x = Math.PI / 2; // Wrap around the spine horizontally
         ring.position.y = i * 16;      // i goes -3 to +3, multiply by 16 to space evenly
         spineGroup.add(ring);
@@ -126,25 +110,25 @@ export function createStation(scene) {
         const moduleGroup = new THREE.Group();
 
         // Connecting tunnel — rotated 90 degrees on Z to point along X axis
-        const tunnel = buildMesh(tunnelGeo, 0xff4d00, 1.02);
+        const tunnel =  buildMesh(tunnelGeo, gouraudMat(0x778899));
         tunnel.rotation.z = Math.PI / 2;
         tunnel.position.x = side * 5; // Centred at x=5 (or -5), spans 0 to 10
         moduleGroup.add(tunnel);
 
         // Main habitat cylinder — begins exactly where the tunnel ends
-        const habitat = buildMesh(habitatGeo, 0xff4d00, 1.02);
+        const habitat =  buildMesh(habitatGeo, flatMat(0x99aabb));
         habitat.rotation.z = Math.PI / 2;
         habitat.position.x = side * 19; // Centred at x=19, spans x=10 to x=28
         moduleGroup.add(habitat);
 
         // Inner cap — junction between tunnel and habitat
-        const innerCap = buildMesh(capGeo, 0x00f3ff, 1.02);
+        const innerCap =  buildMesh(capGeo, flatMat(0xaabbcc));
         innerCap.rotation.z = Math.PI / 2;
         innerCap.position.x = side * 10;
         moduleGroup.add(innerCap);
 
         // Outer cap — far docking end of the habitat
-        const outerCap = buildMesh(capGeo, 0x00f3ff, 1.02);
+        const outerCap =  buildMesh(capGeo, flatMat(0xaabbcc));
         outerCap.rotation.z = Math.PI / 2;
         outerCap.position.x = side * 28;
         moduleGroup.add(outerCap);
@@ -183,7 +167,7 @@ export function createStation(scene) {
 
         // Main boom — thin cylinder rotated to point along X axis
         const boomGeo = new THREE.CylinderGeometry(0.4, 0.4, 45, 8);
-        const boom = buildMesh(boomGeo, 0x00f3ff, 1.02);
+        const boom =  buildMesh(boomGeo, gouraudMat(0x445566));
         boom.rotation.z = Math.PI / 2;
         boom.position.x = side * 22.5; // Centre so it extends outward
         armGroup.add(boom);
@@ -191,7 +175,7 @@ export function createStation(scene) {
         // Cross-brace rings — suggest the boom is a lattice truss structure
         for (let b = -2; b <= 2; b++) {
             const braceGeo = new THREE.TorusGeometry(1.5, 0.2, 6, 12);
-            const brace = buildMesh(braceGeo, 0x00f3ff, 1.02);
+            const brace =  buildMesh(braceGeo, gouraudMat(0x445566));
             brace.rotation.x = Math.PI / 2; // Wrap around the boom axis
             brace.position.x = side * (22.5 + b * 8); // Space 5 braces along boom
             armGroup.add(brace);
@@ -199,16 +183,16 @@ export function createStation(scene) {
 
         // Photovoltaic panels — flat boxes fore and aft of the boom
         const panelGeo = new THREE.BoxGeometry(5, 0.15, 24);
-        const forePanel = buildMesh(panelGeo, 0x0066ff, 1.01);
-        const aftPanel  = buildMesh(panelGeo, 0x0066ff, 1.01);
+        const forePanel = buildMesh(panelGeo, flatMat(0x1a3a6e));
+        const aftPanel  = buildMesh(panelGeo, flatMat(0x1a3a6e));
         forePanel.position.set(side * 22.5, 0,  15); // Forward of boom on Z
         aftPanel.position.set( side * 22.5, 0, -15); // Behind boom on Z
         armGroup.add(forePanel, aftPanel);
 
         // Mounting brackets — connect panels to the boom
         const bracketGeo = new THREE.BoxGeometry(1, 1, 6);
-        const foreBracket = buildMesh(bracketGeo, 0x00f3ff, 1.02);
-        const aftBracket  = buildMesh(bracketGeo, 0x00f3ff, 1.02);
+        const foreBracket = buildMesh(bracketGeo, gouraudMat(0x334455));
+        const aftBracket  = buildMesh(bracketGeo, gouraudMat(0x334455));
         foreBracket.position.set(side * 22.5, 0,  6);
         aftBracket.position.set( side * 22.5, 0, -6);
         armGroup.add(foreBracket, aftBracket);
@@ -239,7 +223,7 @@ export function createStation(scene) {
 
         // Base mounting plate — sits flush at the end of the spine
         const baseGeo = new THREE.CylinderGeometry(4, 4, 2, 16);
-        const base = buildMesh(baseGeo, 0xffcc00, 1.02);
+        const base = buildMesh(baseGeo, gouraudMat(0xccaa55));
         base.position.y = dir * 1;
         tower.add(base);
 
@@ -253,14 +237,14 @@ export function createStation(scene) {
 
         mastSegments.forEach(({ rTop, rBot, h, y }) => {
             const mastGeo = new THREE.CylinderGeometry(rTop, rBot, h, 10);
-            const mast = buildMesh(mastGeo, 0xffcc00, 1.02);
+            const mast = buildMesh(mastGeo, gouraudMat(0xccaa55));
             mast.position.y = y;
             tower.add(mast);
         });
 
         // Parabolic dish — cone tilted at 45 degrees to simulate scanning position
         const dishGeo = new THREE.ConeGeometry(5, 3, 20);
-        const dish = buildMesh(dishGeo, 0xffcc00, 1.02);
+        const dish = buildMesh(dishGeo, gouraudMat(0xccaa55));
         dish.position.y = dir * 34;
         dish.rotation.x = isTop ? Math.PI / 4 : -Math.PI / 4;
         tower.add(dish);
