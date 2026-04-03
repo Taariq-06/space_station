@@ -17,13 +17,13 @@ import * as THREE from "three";
 export function createLighting(scene) {
   // ---Directional light : Sun (Day mode) ---
   // Positioned far to the upper-right to caset angles shadows across the station
-  const sunLight = new THREE.DirectionalLight(0xfff4e0, 2.0);
+  const sunLight = new THREE.DirectionalLight(0xfff4e0, 3.5);
   sunLight.position.set(200, 150, 100);
   scene.add(sunLight);
 
   // Ambient light — low intensity fill so shadow sides aren't pure black
   // This is not a light type required by the rubric, it's a scene quality fix
-  const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
+  const ambientLight = new THREE.AmbientLight(0x404060, 1.2);
   scene.add(ambientLight);
 
   // -- Directional light : Eclipse mode ---
