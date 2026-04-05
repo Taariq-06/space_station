@@ -78,9 +78,14 @@ export class SceneManager {
     this.toggleDayEclipse = lighting.toggleDayEclipse;
 
     // Station — returns spaceStation group and solarGroup for animation
-    const { spaceStation, solarGroup } = createStation(this.scene);
+    const { spaceStation, solarGroup, setShadingMode } = createStation(
+      this.scene,
+    );
     this.spaceStation = spaceStation;
     this.solarGroup = solarGroup;
+    this.setShadingMode = setShadingMode;
+    this.shadingModes = ["phong", "flat", "gouraud"]; // Cycle order
+    this.shadingIndex = 0; // Start on Phong
 
     // Fleet — returns update() for orbital animation
     const fleet = createFleet(this.scene);
@@ -122,6 +127,14 @@ export class SceneManager {
 
       // L — toggle between day and eclipse lighting
       if (key === "l") this.toggleDayEclipse();
+
+      // G — cycle through shading models (Phong → Flat → Gouraud → Phong)
+      if (key === "g") {
+        this.shadingIndex = (this.shadingIndex + 1) % this.shadingModes.length;
+        const mode = this.shadingModes[this.shadingIndex];
+        this.setShadingMode(mode);
+        console.log(`Shading mode: ${mode}`); // Visible confirmation in browser console
+      }
 
       // WASD / Q / E — pass to camera controls for free-roam movement
       this.cameraOnKeyDown(key);
