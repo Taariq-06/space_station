@@ -24,8 +24,12 @@ export function createStation(scene) {
   const buildMesh = (geo, material) => new THREE.Mesh(geo, material);
 
   //Flat shading - one colour per face (habitat/cargo modules)
-  const flatMat = (color) =>
-    new THREE.MeshPhongMaterial({ color, flatShading: true });
+  const flatMat = (color, map = null) =>
+    new THREE.MeshPhongMaterial({
+      color,
+      flatShading: true,
+      map, // null means no texture — Three.js ignores null map properties
+    });
 
   // Gourad shading - per-vertex lighting (structural elements)
   const gouraudMat = (color) => new THREE.MeshLambertMaterial({ color });
@@ -33,6 +37,17 @@ export function createStation(scene) {
   // Phong shading - per-fragment with specular (metallic core)
   const phongMat = (color, shininess = 80) =>
     new THREE.MeshPhongMaterial({ color, shininess });
+
+  // --- Texture loader ---
+  // Three.js TextureLoader fetches image files and returns a THREE.Texture.
+  // Vite serves public/ at the root URL so paths start with '/textures/'.
+  const loader = new THREE.TextureLoader();
+
+  // Metal panel diffuse — applied to habitat module surfaces
+  const metalDiff = loader.load("/textures/metal_plate_diff_1k.jpg");
+
+  // Solar panel diffuse — applied to photovoltaic panel surfaces
+  const solarDiff = loader.load("/textures/solar_panels_diff_1k.jpg");
 
   /* -------------------------------------------------------------------------
     COMPONENT 1 — COMMAND SPHERE
@@ -114,23 +129,22 @@ export function createStation(scene) {
     moduleGroup.add(tunnel);
 
     // Main habitat cylinder — begins exactly where the tunnel ends
-    const habitat = buildMesh(habitatGeo, flatMat(0x99aabb));
+    const habitat = buildMesh(habitatGeo, flatMat(0xffffff, metalDiff));
     habitat.rotation.z = Math.PI / 2;
     habitat.position.x = side * 19; // Centred at x=19, spans x=10 to x=28
     moduleGroup.add(habitat);
 
     // Inner cap — junction between tunnel and habitat
-    const innerCap = buildMesh(capGeo, flatMat(0xaabbcc));
+    const innerCap = buildMesh(capGeo, flatMat(0xffffff, metalDiff));
     innerCap.rotation.z = Math.PI / 2;
     innerCap.position.x = side * 10;
     moduleGroup.add(innerCap);
 
     // Outer cap — far docking end of the habitat
-    const outerCap = buildMesh(capGeo, flatMat(0xaabbcc));
+    const outerCap = buildMesh(capGeo, flatMat(0xffffff, metalDiff));
     outerCap.rotation.z = Math.PI / 2;
     outerCap.position.x = side * 28;
     moduleGroup.add(outerCap);
-
     moduleGroup.position.y = yPos;
     return moduleGroup;
   };
@@ -181,8 +195,8 @@ export function createStation(scene) {
 
     // Photovoltaic panels — flat boxes fore and aft of the boom
     const panelGeo = new THREE.BoxGeometry(5, 0.15, 24);
-    const forePanel = buildMesh(panelGeo, flatMat(0x1a3a6e));
-    const aftPanel = buildMesh(panelGeo, flatMat(0x1a3a6e));
+    const forePanel = buildMesh(panelGeo, flatMat(0xffffff, solarDiff));
+    const aftPanel = buildMesh(panelGeo, flatMat(0xffffff, solarDiff));
     forePanel.position.set(side * 22.5, 0, 15); // Forward of boom on Z
     aftPanel.position.set(side * 22.5, 0, -15); // Behind boom on Z
     armGroup.add(forePanel, aftPanel);
@@ -281,6 +295,7 @@ export function createStation(scene) {
       });
     }
   });
+  console.log('Lit meshes collected:', litMeshes.length);
 
   /**
    * Swaps all station mesh materials to the given shading model.
@@ -289,24 +304,29 @@ export function createStation(scene) {
    */
   const setShadingMode = (mode) => {
     litMeshes.forEach(({ mesh, color, shininess }) => {
+      // Preserve any texture map the mesh already has
+      const existingMap = mesh.material.map || null;
+
       switch (mode) {
         case "flat":
-          // One colour per face — hard edges, no smooth interpolation
           mesh.material = new THREE.MeshPhongMaterial({
             color,
             flatShading: true,
+            map: existingMap, // carry the texture across
           });
           break;
         case "gouraud":
-          // Per-vertex lighting — smooth but calculated at vertices only
-          mesh.material = new THREE.MeshLambertMaterial({ color });
+          mesh.material = new THREE.MeshLambertMaterial({
+            color,
+            map: existingMap, // carry the texture across
+          });
           break;
         case "phong":
         default:
-          // Per-fragment lighting — smooth with specular highlights
           mesh.material = new THREE.MeshPhongMaterial({
             color,
             shininess,
+            map: existingMap, // carry the texture across
           });
           break;
       }
