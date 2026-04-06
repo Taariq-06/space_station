@@ -15,23 +15,19 @@
 
 import * as THREE from "three";
 
-export function createStation(scene) {
+export function createStation(scene, renderer) {
   // Root group — rotating this rotates the entire station
   const spaceStation = new THREE.Group();
   scene.add(spaceStation);
 
-  // Single lit mesh - no wirefram overlay
+  // Single lit mesh - no wireframe overlay
   const buildMesh = (geo, material) => new THREE.Mesh(geo, material);
 
-  //Flat shading - one colour per face (habitat/cargo modules)
+  // Flat shading - one colour per face (habitat/cargo modules)
   const flatMat = (color, map = null) =>
-    new THREE.MeshPhongMaterial({
-      color,
-      flatShading: true,
-      map, // null means no texture — Three.js ignores null map properties
-    });
+    new THREE.MeshPhongMaterial({ color, flatShading: true, map });
 
-  // Gourad shading - per-vertex lighting (structural elements)
+  // Gouraud shading - per-vertex lighting (structural elements)
   const gouraudMat = (color) => new THREE.MeshLambertMaterial({ color });
 
   // Phong shading - per-fragment with specular (metallic core)
@@ -39,18 +35,9 @@ export function createStation(scene) {
     new THREE.MeshPhongMaterial({ color, shininess, normalMap });
 
   // --- Texture loader ---
-  // Three.js TextureLoader fetches image files and returns a THREE.Texture.
-  // Vite serves public/ at the root URL so paths start with '/textures/'.
   const loader = new THREE.TextureLoader();
-
-  // Metal panel diffuse — applied to habitat module surfaces
   const metalDiff = loader.load("/textures/metal_plate_diff_1k.jpg");
-
-  // Solar panel diffuse — applied to photovoltaic panel surfaces
   const solarDiff = loader.load("/textures/solar_panels_diff_1k.jpg");
-
-  // Metal panel normal map — encodes surface direction per pixel
-  // Applied to command sphere to simulate hull panel detail
   const metalNorm = loader.load("/textures/metal_plate_nor_gl_1k.jpg");
 
   /* -------------------------------------------------------------------------
@@ -61,20 +48,30 @@ export function createStation(scene) {
 
   const coreGroup = new THREE.Group();
 
-  // Main sphere — the visual centrepiece of the station
+  // CubeRenderTarget captures the live scene around the sphere
+  // and feeds it back as a real-time environment reflection
+  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(128);
+  const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
+  scene.add(cubeCamera);
+
+  // Main sphere — Phong with normal map and live environment reflection
   const sphereGeo = new THREE.SphereGeometry(16, 32, 16);
-  coreGroup.add(buildMesh(sphereGeo, phongMat(0x8899aa, 120, metalNorm)));
+  const sphereMat = new THREE.MeshPhongMaterial({
+    color: 0x667788,
+    shininess: 60,
+    normalMap: metalNorm,
+    envMap: cubeRenderTarget.texture, // Live scene reflection
+    reflectivity: 0.3,
+  });
+  coreGroup.add(buildMesh(sphereGeo, sphereMat));
 
-  // Junction collars — tapered cylinders (radiusTop < radiusBottom = taper)
-  // Placed above and below the sphere where it meets the spine
   const collarGeo = new THREE.CylinderGeometry(3, 6, 6, 16);
-
   const topCollar = buildMesh(collarGeo, gouraudMat(0x556677));
-  topCollar.position.y = 15; // Top edge of the sphere
+  topCollar.position.y = 15;
   coreGroup.add(topCollar);
 
   const bottomCollar = buildMesh(collarGeo, gouraudMat(0x556677));
-  bottomCollar.position.y = -15; // Mirror at the bottom
+  bottomCollar.position.y = -15;
   coreGroup.add(bottomCollar);
 
   spaceStation.add(coreGroup);
@@ -309,7 +306,7 @@ export function createStation(scene) {
     litMeshes.forEach(({ mesh, color, shininess }) => {
       // Preserve any texture map the mesh already has
       const existingMap = mesh.material.map || null;
-      const existingNormal = mesh.material.normalMap  || null;
+      const existingNormal = mesh.material.normalMap || null;
 
       switch (mode) {
         case "flat":
@@ -317,14 +314,14 @@ export function createStation(scene) {
             color,
             flatShading: true,
             map: existingMap, // carry the texture across
-            normalMap: existingNormal
+            normalMap: existingNormal,
           });
           break;
         case "gouraud":
           mesh.material = new THREE.MeshLambertMaterial({
             color,
             map: existingMap, // carry the texture across
-            normalMap: existingNormal
+            normalMap: existingNormal,
           });
           break;
         case "phong":
@@ -333,7 +330,7 @@ export function createStation(scene) {
             color,
             shininess,
             map: existingMap, // carry the texture across
-            normalMap: existingNormal
+            normalMap: existingNormal,
           });
           break;
       }
@@ -345,5 +342,5 @@ export function createStation(scene) {
     SceneManager uses spaceStation for overall rotation.
     SceneManager uses solarGroup for independent panel rotation.
     ------------------------------------------------------------------------- */
-  return { spaceStation, solarGroup, setShadingMode };
+  return { spaceStation, solarGroup, setShadingMode, cubeCamera };
 }

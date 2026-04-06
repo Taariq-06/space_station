@@ -78,9 +78,9 @@ export class SceneManager {
     this.toggleDayEclipse = lighting.toggleDayEclipse;
 
     // Station — returns spaceStation group and solarGroup for animation
-    const { spaceStation, solarGroup, setShadingMode } = createStation(
-      this.scene,
-    );
+    const { spaceStation, solarGroup, setShadingMode, cubeCamera } =
+      createStation(this.scene, this.renderer);
+    this.cubeCamera = cubeCamera;
     this.spaceStation = spaceStation;
     this.solarGroup = solarGroup;
     this.setShadingMode = setShadingMode;
@@ -168,6 +168,9 @@ export class SceneManager {
       // This is a hierarchical transform — solarGroup inherits station
       // rotation AND adds its own on top
       this.solarGroup.rotation.y += 0.005;
+
+      // Update cube camera — captures live scene for sphere environment reflection
+      this.cubeCamera.update(this.renderer, this.scene);
 
       // Rotate searchlight target around the station on the XZ plane
       const searchAngle = this.orbitClock * 0.0008;
