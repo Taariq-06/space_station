@@ -14,6 +14,7 @@
  */
 
 import * as THREE from "three";
+import { BeaconShader } from "../shaders/beaconShader.js";
 
 export function createStation(scene, renderer) {
   // Root group — rotating this rotates the entire station
@@ -262,11 +263,16 @@ export function createStation(scene, renderer) {
     dish.rotation.x = isTop ? Math.PI / 4 : -Math.PI / 4;
     tower.add(dish);
 
-    // Beacon tip — navigational beacon at the very top of the mast
+    // Beacon tip — custom GLSL shader produces a pulsing cyan/blue glow
+    // ShaderMaterial takes vertexShader, fragmentShader, and uniforms
     const beaconGeo = new THREE.SphereGeometry(0.8, 8, 8);
     const beacon = new THREE.Mesh(
       beaconGeo,
-      new THREE.MeshBasicMaterial({ color: 0x00f3ff }),
+      new THREE.ShaderMaterial({
+        uniforms: THREE.UniformsUtils.clone(BeaconShader.uniforms),
+        vertexShader: BeaconShader.vertexShader,
+        fragmentShader: BeaconShader.fragmentShader,
+      }),
     );
     beacon.position.y = dir * 38;
     tower.add(beacon);
@@ -294,6 +300,13 @@ export function createStation(scene, renderer) {
         color: obj.material.color.getHex(), // Store original colour
         shininess: obj.material.shininess || 80, // Store shininess (undefined on Lambert)
       });
+    }
+  });
+  // Collect all ShaderMaterial beacons for uTime updates each frame
+  const beaconMeshes = [];
+  spaceStation.traverse((obj) => {
+    if (obj.isMesh && obj.material.isShaderMaterial) {
+      beaconMeshes.push(obj);
     }
   });
 
@@ -342,5 +355,5 @@ export function createStation(scene, renderer) {
     SceneManager uses spaceStation for overall rotation.
     SceneManager uses solarGroup for independent panel rotation.
     ------------------------------------------------------------------------- */
-  return { spaceStation, solarGroup, setShadingMode, cubeCamera };
+  return { spaceStation, solarGroup, setShadingMode, cubeCamera, beaconMeshes };
 }

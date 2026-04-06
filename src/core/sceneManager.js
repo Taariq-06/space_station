@@ -78,9 +78,15 @@ export class SceneManager {
     this.toggleDayEclipse = lighting.toggleDayEclipse;
 
     // Station — returns spaceStation group and solarGroup for animation
-    const { spaceStation, solarGroup, setShadingMode, cubeCamera } =
-      createStation(this.scene, this.renderer);
+    const {
+      spaceStation,
+      solarGroup,
+      setShadingMode,
+      cubeCamera,
+      beaconMeshes,
+    } = createStation(this.scene, this.renderer);
     this.cubeCamera = cubeCamera;
+    this.beaconMeshes = beaconMeshes;
     this.spaceStation = spaceStation;
     this.solarGroup = solarGroup;
     this.setShadingMode = setShadingMode;
@@ -158,7 +164,6 @@ export class SceneManager {
     if (this.isOrbiting) {
       // Advance the time accumulator — drives all orbital movement
       this.orbitClock += 16.6;
-
       // Station slow rotation — multi-axis gives a natural drift
       this.spaceStation.rotation.y += 0.002;
       this.spaceStation.rotation.x += 0.0001;
@@ -171,6 +176,11 @@ export class SceneManager {
 
       // Update cube camera — captures live scene for sphere environment reflection
       this.cubeCamera.update(this.renderer, this.scene);
+      // Update beacon shader time uniform — drives the pulse animation
+      const elapsedTime = this.orbitClock / 1000;
+      this.beaconMeshes.forEach((beacon) => {
+        beacon.material.uniforms.uTime.value = elapsedTime;
+      });
 
       // Rotate searchlight target around the station on the XZ plane
       const searchAngle = this.orbitClock * 0.0008;
