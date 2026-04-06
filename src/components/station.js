@@ -35,8 +35,8 @@ export function createStation(scene) {
   const gouraudMat = (color) => new THREE.MeshLambertMaterial({ color });
 
   // Phong shading - per-fragment with specular (metallic core)
-  const phongMat = (color, shininess = 80) =>
-    new THREE.MeshPhongMaterial({ color, shininess });
+  const phongMat = (color, shininess = 80, normalMap = null) =>
+    new THREE.MeshPhongMaterial({ color, shininess, normalMap });
 
   // --- Texture loader ---
   // Three.js TextureLoader fetches image files and returns a THREE.Texture.
@@ -49,6 +49,10 @@ export function createStation(scene) {
   // Solar panel diffuse — applied to photovoltaic panel surfaces
   const solarDiff = loader.load("/textures/solar_panels_diff_1k.jpg");
 
+  // Metal panel normal map — encodes surface direction per pixel
+  // Applied to command sphere to simulate hull panel detail
+  const metalNorm = loader.load("/textures/metal_plate_nor_gl_1k.jpg");
+
   /* -------------------------------------------------------------------------
     COMPONENT 1 — COMMAND SPHERE
     The pressurised command module at the midpoint of the spine (Y=0).
@@ -59,7 +63,7 @@ export function createStation(scene) {
 
   // Main sphere — the visual centrepiece of the station
   const sphereGeo = new THREE.SphereGeometry(16, 32, 16);
-  coreGroup.add(buildMesh(sphereGeo, phongMat(0x8899aa, 120)));
+  coreGroup.add(buildMesh(sphereGeo, phongMat(0x8899aa, 120, metalNorm)));
 
   // Junction collars — tapered cylinders (radiusTop < radiusBottom = taper)
   // Placed above and below the sphere where it meets the spine
@@ -295,7 +299,6 @@ export function createStation(scene) {
       });
     }
   });
-  console.log('Lit meshes collected:', litMeshes.length);
 
   /**
    * Swaps all station mesh materials to the given shading model.
@@ -306,6 +309,7 @@ export function createStation(scene) {
     litMeshes.forEach(({ mesh, color, shininess }) => {
       // Preserve any texture map the mesh already has
       const existingMap = mesh.material.map || null;
+      const existingNormal = mesh.material.normalMap  || null;
 
       switch (mode) {
         case "flat":
@@ -313,12 +317,14 @@ export function createStation(scene) {
             color,
             flatShading: true,
             map: existingMap, // carry the texture across
+            normalMap: existingNormal
           });
           break;
         case "gouraud":
           mesh.material = new THREE.MeshLambertMaterial({
             color,
             map: existingMap, // carry the texture across
+            normalMap: existingNormal
           });
           break;
         case "phong":
@@ -327,6 +333,7 @@ export function createStation(scene) {
             color,
             shininess,
             map: existingMap, // carry the texture across
+            normalMap: existingNormal
           });
           break;
       }
