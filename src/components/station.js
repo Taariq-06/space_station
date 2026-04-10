@@ -9,8 +9,9 @@
  * separately so the animation loop can rotate it independently
  * to imply solar panel sun-tracking.
  *
- * @param {THREE.Scene} scene - The main Three.js scene
- * @returns {{ spaceStation: THREE.Group, solarGroup: THREE.Group }}
+* @param {THREE.Scene} scene - The main Three.js scene
+* @param {THREE.WebGLRenderer} renderer - The WebGL renderer (used for CubeCamera environment mapping)
+* @returns {{ spaceStation, solarGroup, setShadingMode, cubeCamera, beaconMeshes }}
  */
 
 import * as THREE from "three";
@@ -355,5 +356,6 @@ export function createStation(scene, renderer) {
     SceneManager uses spaceStation for overall rotation.
     SceneManager uses solarGroup for independent panel rotation.
     ------------------------------------------------------------------------- */
+
   return { spaceStation, solarGroup, setShadingMode, cubeCamera, beaconMeshes };
 }

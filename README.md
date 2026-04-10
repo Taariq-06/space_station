@@ -1,261 +1,255 @@
-# 3D Space Station 
-### Taariq Charles
+# 3D Space Station
+### Taariq Charles — COS3712 Computer Graphics
 
-## Overview
+A real-time interactive 3D space station built entirely in Three.js — no 
+external 3D models, no game engine. Every component is constructed from 
+geometry primitives, every surface is lit and shaded in code, and every 
+animation runs in a custom render loop.
 
-A real-time, interactive 3D space station built with HTML, CSS, and JavaScript, 
-using the Three.js library for 3D rendering. Inspired by the ISS (International 
-Space Station), users can freely explore a simulated space station from any angle 
-— orbiting, zooming, and navigating through the scene in real time.
+This project was built in two phases as part of a university computer 
+graphics course. Phase 1 covers geometry, animation, and camera systems. 
+Phase 2 adds a full lighting model, three shading techniques, texture and 
+normal mapping, environment mapping, and custom GLSL shaders.
 
+> Assessment 2 codebase is tagged as `assessment-2-final` in the commit 
+> history if you want to see the project before Phase 2 was added.
 
+![Full Station Overview](./screenshots/10_overview.png)
 
-https://github.com/user-attachments/assets/7d6d2d82-ab1a-460e-9bef-c7e34ef26221
+---
 
+## Tech Stack
 
+| | |
+|---|---|
+| Language | JavaScript (ES6+) |
+| 3D Library | [Three.js](https://threejs.org/) r183 |
+| Build Tool | [Vite](https://vitejs.dev/) |
+| Shading Language | GLSL (via Three.js ShaderMaterial) |
+| Version Control | Git & GitHub |
 
-## 🚀 Tech Stack
-* **Language:** JavaScript (ES6+)
-* **3D Library:** [Three.js](https://threejs.org/)
-* **Build Tool:** [Vite](https://vitejs.dev/)
-* **Version Control:** Git & GitHub
+---
 
-## How to Run
+## Getting Started
+```bash
+git clone https://github.com/Taariq-06/space_station
+cd space_station
+npm install
+npm run dev
+```
 
-1. Clone the repository to your local machine
-2. Open the project in your code editor
-3. In the terminal, run `npm i` to install dependencies
-4. Run `npm run dev` to start the local development server
-5. Hold `Ctrl` and click the link that appears in the terminal to open the app in your browser
+Then open the link that appears in the terminal.
+
+---
 
 ## Controls
 
 | Input | Action |
 |---|---|
-| Mouse drag | Orbit camera around the station |
-| Scroll wheel | Zoom in and out |
-| W / S | Move camera forward and backward |
-| A / D | Strafe camera left and right |
-| E / Q | Move camera up and down |
-| P | Pause and resume all spacecraft |
-| V | Toggle between external orbit view and first-person docking view |
-
-## 🛠️ Assessment Criteria Checklist
-
-### Objectives
-
-- [x] **Build a 3D space station using primitives**
-  All station components are built entirely from Three.js geometry primitives 
-  (CylinderGeometry, SphereGeometry, BoxGeometry, TorusGeometry, ConeGeometry). 
-  No external 3D models were imported. Components 1–7 in main.js cover every 
-  structural element of the station.
-
-- [x] **Animate spacecraft and rotating components**
-  Demonstrated in the animation loop using a `shipOrbits` array that pre-defines 
-  each ship's radius, inclination, and speed. A `forEach` loop applies these 
-  parameters to each spacecraft every frame. The station rotates slowly on 
-  multiple axes, and the solar arrays rotate independently on top of the station 
-  rotation — demonstrating hierarchical animation.
-
-- [x] **Implement full camera navigation**
-  Implemented using the OrbitControls add-on from Three.js for mouse orbit and 
-  scroll zoom. WASD and Q/E key tracking was added manually in the animation loop 
-  for full free-roam movement in all six directions.
-
-- [x] **Use perspective projection**
-  Implemented using Three.js `PerspectiveCamera` with a 75° field of view, 
-  mimicking the way the human eye perceives depth and distance. Declared and 
-  configured before any scene components are built.
-
-### Implementation Requirements
-
-#### 1. Space Station Structure
-
-- [x] **Central core using cylinders or spheres**
-  A `SphereGeometry` forms the command sphere at the midpoint of the spine. 
-  Two tapered `CylinderGeometry` junction collars sit above and below it, 
-  suggesting the sphere is physically bolted onto the truss backbone.
-
-- [x] **Minimum 6 docking modules**
-  Six pressurised habitat modules extend horizontally from the spine — three on 
-  the port side (+X) and three on the starboard side (-X), staggered at Y = 30, 
-  0, and -30. Each module has a connecting tunnel, a main habitat cylinder, and 
-  two end caps.
-
-- [x] **Minimum 4 solar panel arrays**
-  Four solar array arms are mounted on the spine at Y = ±45, alternating port 
-  and starboard. Each arm has a structural boom, five cross-brace rings, two 
-  photovoltaic panels, and mounting brackets. The solar group rotates 
-  independently to imply sun-tracking.
-
-- [x] **Minimum 2 communication towers**
-  Two towers are mounted at the top and bottom of the spine (Y = ±60). Each has 
-  a base mounting plate, a three-segment telescoping mast, a tilted parabolic 
-  dish, and a cyan beacon tip. Both towers are built from a single `buildTower` 
-  function using a direction multiplier to mirror the bottom tower automatically.
-
-- [x] **Station must rotate slowly in space**
-  The `spaceStation` group rotates on Y, X, and Z axes every frame inside the 
-  animation loop. The Y rotation is the most visible. X and Z add a subtle 
-  natural drift.
-
-- [x] **Must demonstrate scaling, rotation, and translation**
-  - **Scaling** — wireframe meshes are uniformly scaled to 1.01–1.02 to prevent 
-    Z-fighting. Wings use non-uniform scaling (thin on Y). Nose sphere is 
-    flattened with `scale.y = 0.6`.
-  - **Rotation** — cylinders are rotated 90° to point horizontally. Torus rings 
-    are rotated to wrap around the spine. Dishes are tilted 45°.
-  - **Translation** — every component is positioned using `.position.x/y/z` 
-    relative to its parent group, building up the full station through 
-    hierarchical offsets.
+| Mouse drag | Orbit camera |
+| Scroll wheel | Zoom in / out |
+| W / S | Move forward / backward |
+| A / D | Strafe left / right |
+| E / Q | Move up / down |
+| P | Pause / resume all spacecraft |
+| V | Toggle external orbit / docking view |
+| L | Toggle day / eclipse lighting |
+| G | Cycle shading models (Phong → Flat → Gouraud) |
 
 ---
 
-#### 2. Spacecraft & Animation
+## Features
 
-- [x] **Minimum 4 spacecraft following defined orbital paths**
-  Four ships orbit the station, each with unique parameters defined in the 
-  `shipOrbits` array — different radius, inclination angle, and speed. 
-  Inclination lifts each orbit out of the flat equatorial plane using 3D 
-  trigonometry, creating a realistic multi-orbit environment.
+### Lighting System
 
-- [x] **Smooth continuous movement using translation and rotation**
-  Ship position is calculated every frame using `Math.cos` and `Math.sin` for 
-  smooth circular motion. The look-behind method using `lookAt()` ensures the 
-  nose always faces the correct flight direction at every point in the orbit.
+Three light types illuminate the scene:
 
-- [x] **Controls to pause/resume all ships simultaneously**
-  The `P` key toggles the `isOrbiting` flag. When false, `currentOrbitTime` 
-  stops incrementing, which freezes all ship positions simultaneously. Pressing 
-  P again resumes all ships from exactly where they stopped.
+**Directional Light — Sun**
+Positioned at (200, 150, 100) to cast angled light across the station 
+from the upper right. Press **L** to switch to eclipse mode — a dim blue 
+directional light from the opposite direction simulates the station 
+passing behind a planet.
 
----
+| Day Mode | Eclipse Mode |
+|---|---|
+| ![Day](./screenshots/10_overview.png) | ![Eclipse](./screenshots/11_eclipse_mode.png) |
 
-#### 3. Camera & User Controls
+**Point Lights — Docking Bay Beacons**
+Four point lights sit at the outer caps of the habitat modules. 
+Orange-white, intensity 1.5, falloff radius 60 — simulating pressurised 
+module lighting visible at each docking interface.
 
-- [x] **Free camera movement (forward/backward, left/right, up/down)**
-  W/S moves the camera along its own forward vector. A/D strafes along the right 
-  vector, calculated using `crossVectors`. E/Q moves up and down on the world Y 
-  axis. All movement is relative to the camera's current orientation.
-
-- [x] **Zoom in/out**
-  Scroll wheel zoom is handled by OrbitControls. Minimum distance is 10 units 
-  (cannot clip inside the station) and maximum distance is 500 units.
-
-- [x] **Switch between external orbit view and first-person docking view**
-  The `V` key toggles between two camera positions. External view pulls back to 
-  Y=30, Z=150 for a full station overview. First-person docking view positions 
-  the camera at X=55, Y=30 outside the upper port habitat module, looking inward 
-  toward the station core to simulate an approach-to-dock perspective.
-
-- [x] **Camera movement must be smooth**
-  OrbitControls damping is enabled with a factor of 0.03, giving the camera a 
-  cinematic glide after mouse release. WASD movement uses per-frame increments 
-  at a consistent speed of 0.8 units per frame.
+**Spotlights — Guidance and Searchlight**
+A fixed spotlight aims at the upper port docking module. A second 
+spotlight rotates around the station every frame — its target position 
+is recalculated from `orbitClock` each tick, sweeping the searchlight 
+across the structure continuously.
 
 ---
 
-## 🏗️ Station Components
+### Shading Models
 
-The station is built entirely from Three.js geometry primitives, structured 
-around a central vertical spine — inspired by the engineering logic of the 
-real ISS.
+All three classical shading models are implemented and live-switchable 
+with **G**. The toggle traverses every mesh on the station and swaps 
+materials at runtime, preserving texture maps across the swap.
 
-![Full Station Overview](./screenshots/01_overview.png)
+**Flat** — one normal per face. Hard polygon edges, no interpolation.
+**Gouraud** — lighting calculated per vertex, interpolated across faces.
+**Phong** — lighting calculated per fragment. Smooth with specular highlights.
 
-**Command Sphere**
-The central core of the station. A sphere sits at the midpoint of the spine, 
-representing the pressurised command module. Two tapered junction collars above 
-and below it suggest it is physically bolted onto the truss backbone.
-![Command Sphere](./screenshots/02_command_sphere.png)
+| Flat | Gouraud | Phong |
+|---|---|---|
+| ![Flat](./screenshots/12_flat_shading.png) | ![Gouraud](./screenshots/13_gouraud_shading.png) | ![Phong](./screenshots/14_phong_shading.png) |
 
-**Central Spine**
-The structural backbone of the entire station. A vertical truss cylinder runs 
-the full height of the station along the Y-axis. Every major component attaches 
-to it. Seven evenly spaced collar rings along its length suggest segmented truss 
-construction, inspired by the Integrated Truss Structure (ITS) of the ISS.
+Implementation detail — Flat uses `MeshPhongMaterial` with 
+`flatShading: true`, Gouraud uses `MeshLambertMaterial`, Phong uses 
+`MeshPhongMaterial` with default settings. Ships always use Phong 
+regardless of the toggle.
 
-![Central Spine](./screenshots/03_central_spine.png)
+---
 
-**Habitat & Docking Modules (×6)**
-Six pressurised habitat modules extend horizontally from the spine — three on 
-the port side and three on the starboard side, staggered at three heights. 
-Each module consists of:
-- A connecting tunnel from the spine to the module
-- A main habitat cylinder (the pressurised volume)
-- Two end caps (flat discs) — the docking interfaces
+### Surface Mapping
 
-![Habitat Modules](./screenshots/4.1_habitat_module.png)
+Three mapping techniques are applied to the station:
 
-![Habitat Modules](./screenshots/4.2_habitat_module_constructed.png)
+**Diffuse Texture Mapping**
+Metal plate texture on habitat module cylinders and end caps. Solar panel 
+texture on photovoltaic surfaces. Both sourced from 
+[Poly Haven](https://polyhaven.com) at 1K resolution.
 
-**Solar Array Arms (×4)**
-Four solar array arms are mounted at the upper and lower portions of the spine, 
-two on each side (port and starboard), alternating like the ISS arrays. 
-Each arm consists of:
-- A horizontal boom extending from the spine
-- Cross-brace rings along the boom — suggesting truss construction
-- Two photovoltaic panels (fore and aft of the boom)
-- Mounting brackets connecting the panels to the boom
+**Normal Mapping**
+A metal plate normal map is applied to the command sphere. The normal map 
+encodes surface direction per pixel — the geometry remains a smooth sphere 
+but the lighting model reads the normal map and renders it as if physical 
+panel seams and hull detail exist on the surface.
 
-![Solar Arrays](./screenshots/5.1_solar_arrays_constructed.png)
+**Environment Mapping**
+A `WebGLCubeRenderTarget` and `CubeCamera` are positioned at the sphere 
+centre. Every frame the cube camera captures the live scene in all six 
+directions and feeds it back into the sphere material as `envMap`. The 
+reflection shifts as you orbit — it is capturing the actual scene, not a 
+static image.
 
-![Solar Arrays](./screenshots/5.2_solar_arrays_constructed.png)
+![Sphere — normal map and environment map](./screenshots/15_sphere_envmap_normal.png)
 
-**Communication Towers (×2)**
-Two communication towers sit at the very top and bottom ends of the spine. 
-Each tower consists of:
-- A base mounting plate
-- A three-segment telescoping mast of decreasing radius
-- A parabolic dish tilted at 45° — scanning position
-- A cyan beacon tip at the very top
+---
 
-Both towers are built from a single `buildTower` function, using a direction 
-multiplier to automatically mirror the bottom tower from the top.
+### GLSL Shader
 
-![Comms Tower](./screenshots/06_comms_tower.png)
+A custom `ShaderMaterial` is applied to the beacon tips on both 
+communication towers. Defined in `src/shaders/BeaconShader.js`.
 
-**Spacecraft Fleet (×4)**
-Four spacecraft orbit the station on independent paths, each with a unique 
-radius, inclination angle, and speed. Each ship is built from a fuselage, 
-a flattened nose, delta wings, two engine pods, and twin engine glow exhausts.
+The fragment shader uses `sin(uTime)` to oscillate a `pulse` value 
+between 0 and 1. `mix()` interpolates between deep blue and bright cyan 
+based on the pulse — producing a breathing glow effect. The `uTime` 
+uniform is updated every frame from `orbitClock` in the animation loop.
 
-![Spacecraft](./screenshots/07_space_craft.png)
+| Cyan peak | Blue trough |
+|---|---|
+| ![Beacon cyan](./screenshots/16_beacon_cyan.png) | ![Beacon blue](./screenshots/17_beacon_blue.png) |
+```glsl
+float pulse = sin(uTime * 3.0) * 0.5 + 0.5;
+vec3 color = mix(deepBlue, brightCyan, pulse);
+gl_FragColor = vec4(color, 1.0);
+```
 
-![Spacecraft Fleet](./screenshots/09_space_craft_fleet.png)
+---
 
-## ⚠️ Known Limitations
+## Project Structure
+```
+src/
+├── components/
+│   ├── starfield.js      — two-layer static star field
+│   ├── station.js        — full station geometry, materials, shading toggle
+│   ├── fleet.js          — 4 spacecraft with orbital animation
+│   └── lighting.js       — all three light types, day/eclipse toggle
+├── core/
+│   ├── sceneManager.js   — scene, renderer, animation loop, event handling
+│   └── cameraControls.js — OrbitControls, WASD, view switching
+├── shaders/
+│   └── beaconShader.js   — GLSL vertex + fragment shader for beacon pulse
+└── main.js               — entry point
+public/
+└── textures/
+    ├── metal_plate_diff_1k.jpg
+    ├── metal_plate_nor_gl_1k.jpg
+    ├── solar_panels_diff_1k.jpg
+    └── starfield_1k.hdr
+screenshots/              — all project screenshots for README
+```
 
-**No planetary orbit**
-The assessment brief states the station should orbit a planet. After nearly 
-1000 lines of code building the station itself, implementing a planet with a 
-convincing orbital path would have detracted from the detail and quality of 
-the station — which is the primary deliverable of Assessment 2. The planet 
-and orbital mechanics are noted as a missing feature.
+---
 
-**The space station is a hypothetical model**
-The station is inspired by the ISS but does not accurately replicate it. 
-Building a completely realistic space station is outside the scope of this 
-project. The design prioritises engineering logic and visual clarity over 
-exact technical accuracy.
+## Station Architecture
 
-**First-person docking view**
-The first-person view does not fully resemble being inside a space station. 
-It is better described as a close external perspective from just outside a 
-docking port, looking inward toward the station core. A truly immersive 
-first-person view — locked inside the station looking outward — would require 
-disabling OrbitControls entirely and implementing a dedicated first-person 
-camera controller, which is beyond the scope of this assessment.
+The station is built entirely from Three.js geometry primitives, 
+structured around a central vertical spine.
 
-**Scale**
-The station components are small relative to what a real space station would 
-look like at true scale. All dimensions were chosen to make the station visually 
-readable and navigable in the browser, not to reflect real-world measurements.
+### Command Sphere
+The pressurised command module at the midpoint of the spine. 
+`SphereGeometry` with Phong shading, normal mapping, and live 
+environment reflection. Two tapered junction collars above and below 
+suggest it is physically bolted onto the truss.
 
-**No lighting or textures**
-The station uses only MeshBasicMaterial with wireframe overlays — no lighting, 
-shading, or texture mapping has been applied. This is intentional. These features 
-are reserved for future improvements
+![Command Sphere](./screenshots/01_command_sphere.png)
+
+### Central Spine
+A vertical `CylinderGeometry` running the full height of the station. 
+Seven torus collar rings spaced evenly along its length suggest segmented 
+truss construction — inspired by the Integrated Truss Structure of the ISS.
+
+![Central Spine](./screenshots/02_central_spine.png)
+
+### Habitat & Docking Modules ×6
+Six pressurised modules extend horizontally from the spine — three port, 
+three starboard, staggered at Y = 30, 0, −30. Each module has a 
+connecting tunnel, a habitat cylinder with metal plate texture, and two 
+end caps.
+
+![Habitat Modules](./screenshots/03_habitat_module.png)
+
+### Solar Array Arms ×4
+Four arms at Y = ±45, alternating port and starboard. Each has a boom, 
+five cross-brace rings, two photovoltaic panels with solar texture, and 
+mounting brackets. The solar group rotates independently of the station 
+to imply sun-tracking — a hierarchical transform on top of the station 
+rotation.
+
+![Solar Arrays](./screenshots/04_solar_panels.png)
+
+### Communication Towers ×2
+Top and bottom of the spine at Y = ±60. Three-segment telescoping mast, 
+tilted parabolic dish, and a beacon tip running the custom GLSL pulse 
+shader. Both towers are built from a single `buildTower` function using a 
+direction multiplier to mirror the bottom tower automatically.
+
+![Comms Tower](./screenshots/05_communication_towers.png)
+
+### Spacecraft Fleet ×4
+Four ships orbit on independent paths defined by radius, inclination, and 
+speed. Each ship has a fuselage, flattened nose, delta wings, engine pods, 
+and cyan engine glow. Hull surfaces use Phong shading. Engine glow uses 
+`MeshBasicMaterial` so it emits regardless of scene lighting.
+
+![Spacecraft Fleet](./screenshots/06_space_craft.png)
+
+---
+
+## Known Limitations
+
+**No planetary orbit** — implementing a convincing planet with orbital 
+mechanics would have detracted from the station detail, which is the 
+primary deliverable. Noted as a missing feature.
+
+**First-person docking view** — the V key positions the camera just 
+outside a docking port looking inward. A truly immersive interior view 
+would require disabling OrbitControls and implementing a dedicated 
+first-person controller.
+
+**Scale** — all dimensions are chosen for visual readability in the 
+browser, not real-world accuracy.
+
+---
 
 ## 📚 References & Documentation
 
@@ -267,6 +261,11 @@ are reserved for future improvements
 - [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer)
 - [WebGLRenderer.render](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.render)
 - [WebGLRenderer.setSize](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setSize)
+- [Object3D.traverse](https://threejs.org/docs/#api/en/core/Object3D.traverse)
+- [Object3D.visible](https://threejs.org/docs/#api/en/core/Object3D.visible)
+- [Object3D.scale](https://threejs.org/docs/#api/en/core/Object3D.scale)
+- [Object3D.updateMatrixWorld](https://threejs.org/docs/#api/en/core/Object3D.updateMatrixWorld)
+- [Vector3.copy](https://threejs.org/docs/#api/en/math/Vector3.copy)
 
 ### Three.js — Objects & Groups
 - [Group](https://threejs.org/docs/#api/en/objects/Group)
@@ -285,6 +284,19 @@ are reserved for future improvements
 ### Three.js — Materials
 - [MeshBasicMaterial](https://threejs.org/docs/#api/en/materials/MeshBasicMaterial)
 - [PointsMaterial](https://threejs.org/docs/#api/en/materials/PointsMaterial)
+- [MeshPhongMaterial](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial)
+- [MeshLambertMaterial](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial)
+- [ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial)
+- [ShaderMaterial.uniforms](https://threejs.org/docs/#api/en/materials/ShaderMaterial.uniforms)
+- [ShaderMaterial.vertexShader](https://threejs.org/docs/#api/en/materials/ShaderMaterial.vertexShader)
+- [ShaderMaterial.fragmentShader](https://threejs.org/docs/#api/en/materials/ShaderMaterial.fragmentShader)
+- [MeshPhongMaterial.shininess](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial.shininess)
+- [MeshPhongMaterial.normalMap](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial.normalMap)
+- [MeshPhongMaterial.envMap](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial.envMap)
+- [MeshPhongMaterial.reflectivity](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial.reflectivity)
+- [Material.flatShading](https://threejs.org/docs/#api/en/materials/Material.flatShading)
+- [Material.map](https://threejs.org/docs/#api/en/materials/Material)
+- [Color.getHex](https://threejs.org/docs/#api/en/math/Color.getHex)
 
 ### Three.js — Math & Vectors
 - [Vector3](https://threejs.org/docs/#api/en/math/Vector3)
@@ -309,6 +321,39 @@ are reserved for future improvements
 - [OrbitControls.update](https://threejs.org/docs/#examples/en/controls/OrbitControls.update)
 - [OrbitControls.enabled](https://threejs.org/docs/#examples/en/controls/OrbitControls.enabled)
 
+### Three.js — Lights
+- [DirectionalLight](https://threejs.org/docs/#api/en/lights/DirectionalLight)
+- [AmbientLight](https://threejs.org/docs/#api/en/lights/AmbientLight)
+- [PointLight](https://threejs.org/docs/#api/en/lights/PointLight)
+- [SpotLight](https://threejs.org/docs/#api/en/lights/SpotLight)
+- [SpotLight.angle](https://threejs.org/docs/#api/en/lights/SpotLight.angle)
+- [SpotLight.penumbra](https://threejs.org/docs/#api/en/lights/SpotLight.penumbra)
+- [SpotLight.distance](https://threejs.org/docs/#api/en/lights/SpotLight.distance)
+- [SpotLight.target](https://threejs.org/docs/#api/en/lights/SpotLight.target)
+
+### Textures & Loaders
+- [TextureLoader](https://threejs.org/docs/#api/en/loaders/TextureLoader)
+- [TextureLoader.load](https://threejs.org/docs/#api/en/loaders/TextureLoader.load)
+
+### Three.js - Environmnent Mapping
+- [WebGLCubeRenderTarget](https://threejs.org/docs/#api/en/renderers/WebGLCubeRenderTarget)
+- [CubeCamera](https://threejs.org/docs/#api/en/cameras/CubeCamera)
+- [CubeCamera.update](https://threejs.org/docs/#api/en/cameras/CubeCamera.update)
+- [WebGLRenderTarget.texture](https://threejs.org/docs/#api/en/renderers/WebGLRenderTarget.texture)
+
+### Three.js — Shaders
+- [UniformsUtils](https://threejs.org/docs/#api/en/renderers/shaders/UniformsUtils)
+- [WebGLProgram](https://threejs.org/docs/#api/en/renderers/webgl/WebGLProgram)
+
+
+### GLSL — Khronos Reference
+- [GLSL sin()](https://registry.khronos.org/OpenGL-Refpages/gl4/html/sin.xhtml)
+- [GLSL mix()](https://registry.khronos.org/OpenGL-Refpages/gl4/html/mix.xhtml)
+- [GLSL gl_Position](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_Position.xhtml)
+- [GLSL gl_FragColor](https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_FragColor.xhtml)
+- [GLSL Data Types](https://www.khronos.org/opengl/wiki/Data_Type_(GLSL))
+- [GLSL Type Qualifiers](https://www.khronos.org/opengl/wiki/Type_Qualifier_(GLSL))
+
 ### Web APIs
 - [document.querySelector](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector)
 - [window.innerWidth / innerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth)
@@ -323,6 +368,18 @@ are reserved for future improvements
 - [Array.prototype.forEach](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach)
 - [Array.prototype.push](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push)
 - [String.prototype.toLowerCase](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase)
+- [Array.prototype.map()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map)
+- [Array.prototype.forEach()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach)
+- [Array.prototype.push()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push)
+- [Math.PI](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/PI)
+- [Math.cos()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos)
+- [Math.sin()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin)
+- [Destructuring assignment](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)
+- [Template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals)
+- [Remainder operator (%)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Remainder)
+- [switch statement](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch)
+- [export](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export)
+- [console.log()](https://developer.mozilla.org/en-US/docs/Web/API/console/log_static)
 
 ### External Resources
 - [Three.js Fundamentals](https://threejs.org/manual/#en/fundamentals)
@@ -333,3 +390,4 @@ are reserved for future improvements
 - [threejs-app structure reference](https://github.com/mattdesl/threejs-app/tree/master/src)
 - [NASA — ISS Assembly Elements](https://www.nasa.gov/international-space-station/international-space-station-assembly-elements/)
 - [Three.js 101 Crash Course: Beginner’s Guide to 3D Web Design (7 HOURS!)](https://youtu.be/KM64t3pA4fs?si=OepnL-_TJn3HKpq5)
+- [Poly Haven — Textures](https://polyhaven.com)

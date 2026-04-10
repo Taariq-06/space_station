@@ -174,8 +174,12 @@ export class SceneManager {
       // rotation AND adds its own on top
       this.solarGroup.rotation.y += 0.005;
 
-      // Update cube camera — captures live scene for sphere environment reflection
+      // Hide the sphere briefly during cube camera update to prevent
+      // WebGL feedback loop (reading and writing same texture simultaneously)
+      const sphereMesh = this.spaceStation.children[0].children[0];
+      sphereMesh.visible = false;
       this.cubeCamera.update(this.renderer, this.scene);
+      sphereMesh.visible = true;
       // Update beacon shader time uniform — drives the pulse animation
       const elapsedTime = this.orbitClock / 1000;
       this.beaconMeshes.forEach((beacon) => {
